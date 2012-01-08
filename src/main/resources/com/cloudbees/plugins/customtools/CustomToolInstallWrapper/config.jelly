@@ -1,0 +1,24 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:entry title="" description="">
+      <f:repeatable name="selectedTools" var="selectedTool" items="${instance.selectedTools}"
+        add="${%Add Tool}" header="Tools to install">
+         <j:set var="toolDescriptor" value="${descriptor}" /><!-- to make this descriptor accessible from properties -->
+        <table width="100%">
+           <f:entry title="${%Tool selection}">
+             <select class="setting-input" name="selectedTools.name">
+              <j:forEach var="installation" items="${descriptor.installations}">
+                <f:option selected="${installation.name==selectedTool.name}" 
+                          value="${installation.name}">${installation.name}</f:option>
+              </j:forEach>
+             </select>
+
+            <div align="right">
+              <f:repeatableDeleteButton value="${%Delete tool}"/>
+            </div>
+          </f:entry>
+        </table>        
+      </f:repeatable>
+  </f:entry>
+ 
+  
+</j:jelly>
