@@ -31,6 +31,12 @@ import org.apache.tools.ant.types.FileSet;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+/**
+ * Installs tools selected by the user. Exports configured paths and a home variable for each tool.
+ * 
+ * @author rcampbell
+ *
+ */
 public class CustomToolInstallWrapper extends BuildWrapper {
 
     /**

@@ -94,7 +94,17 @@ public class CustomTool extends ToolInstallation implements
         }
     }
 
-    public List<String> getPaths(Node node) throws IOException, InterruptedException {
+    /**
+     * Finds the directories to add to the path, for the given node.
+     * Uses Ant filesets to expand the patterns in the exportedPaths field.
+     * 
+     * @param node where the tool has been installed
+     * @return a list of directories to add to the $PATH
+     * 
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    protected List<String> getPaths(Node node) throws IOException, InterruptedException {
 
         FilePath homePath = new FilePath(node.getChannel(), getHome());
         if (exportedPaths == null) {
