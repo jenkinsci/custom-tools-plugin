@@ -3,15 +3,13 @@ package com.cloudbees.jenkins.plugins.customtools;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.Util;
 import hudson.FilePath.FileCallable;
+import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.TaskListener;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
 import hudson.slaves.NodeSpecific;
-import hudson.tools.DownloadFromUrlInstaller;
-import hudson.tools.JDKInstaller;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolInstallation;
@@ -20,15 +18,12 @@ import hudson.tools.ZipExtractionInstaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.types.FileSet;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import com.cloudbees.plugins.customtools.Messages;
 
 /**
  * An arbitrary tool, which can add directories to the build's PATH

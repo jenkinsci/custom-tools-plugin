@@ -1,18 +1,16 @@
 package com.cloudbees.jenkins.plugins.customtools;
 
-import java.io.IOException;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import com.cloudbees.plugins.customtools.Messages;
-
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Util;
-import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.model.Node;
 import hudson.tools.CommandInstaller;
 import hudson.tools.ToolInstallation;
+
+import java.io.IOException;
+
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * A command installer which is easy on users since they don't have to write idempotent scripts.

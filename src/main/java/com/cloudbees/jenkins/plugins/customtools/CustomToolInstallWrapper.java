@@ -2,8 +2,6 @@ package com.cloudbees.jenkins.plugins.customtools;
 
 import hudson.EnvVars;
 import hudson.Extension;
-import hudson.FilePath;
-import hudson.FilePath.FileCallable;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.Util;
@@ -14,24 +12,17 @@ import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
 import hudson.model.Run.RunnerAbortedException;
-import hudson.remoting.VirtualChannel;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import net.sf.json.JSONObject;
 
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.types.FileSet;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-
-import com.cloudbees.plugins.customtools.Messages;
 
 /**
  * Installs tools selected by the user. Exports configured paths and a home variable for each tool.
