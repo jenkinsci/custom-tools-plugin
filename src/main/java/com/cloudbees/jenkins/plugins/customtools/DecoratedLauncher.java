@@ -1,4 +1,4 @@
-package com.cloudbees.plugins.customtools;
+package com.cloudbees.jenkins.plugins.customtools;
 
 import hudson.FilePath;
 import hudson.Launcher;

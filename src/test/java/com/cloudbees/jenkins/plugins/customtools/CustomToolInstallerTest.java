@@ -1,4 +1,4 @@
-package com.cloudbees.plugins.customtools;
+package com.cloudbees.jenkins.plugins.customtools;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
@@ -23,7 +23,9 @@ import java.util.concurrent.Future;
 
 import org.jvnet.hudson.test.HudsonTestCase;
 
-import com.cloudbees.plugins.customtools.CustomTool.DescriptorImpl;
+import com.cloudbees.jenkins.plugins.customtools.CustomTool;
+import com.cloudbees.jenkins.plugins.customtools.CustomToolInstallWrapper;
+import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
 
 
 public class CustomToolInstallerTest extends HudsonTestCase {

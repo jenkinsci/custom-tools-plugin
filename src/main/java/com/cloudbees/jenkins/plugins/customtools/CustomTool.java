@@ -1,4 +1,4 @@
-package com.cloudbees.plugins.customtools;
+package com.cloudbees.jenkins.plugins.customtools;
 
 import hudson.EnvVars;
 import hudson.Extension;
@@ -27,6 +27,8 @@ import java.util.List;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.types.FileSet;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import com.cloudbees.plugins.customtools.Messages;
 
 /**
  * An arbitrary tool, which can add directories to the build's PATH

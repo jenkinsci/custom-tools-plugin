@@ -1,8 +1,10 @@
-package com.cloudbees.plugins.customtools;
+package com.cloudbees.jenkins.plugins.customtools;
 
 import java.io.IOException;
 
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import com.cloudbees.plugins.customtools.Messages;
 
 import hudson.Extension;
 import hudson.FilePath;
