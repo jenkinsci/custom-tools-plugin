@@ -6,8 +6,8 @@
     <version>1.399</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
 
-  <groupId>com.cloudbees.plugins.customtools</groupId>
-  <artifactId>customtools-plugin</artifactId>
+  <groupId>com.cloudbees.plugins.custom-tools</groupId>
+  <artifactId>custom-tools-plugin</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
