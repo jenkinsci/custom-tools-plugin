@@ -10,6 +10,23 @@
   <artifactId>custom-tools-plugin</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/Custom+Tools+Plugin</url>
+
+  <developers>
+    <developer>
+      <id>recampbell</id>
+      <name>Ryan Campbell</name>
+      <email>ryan.campbell@gmail.com</email>
+    </developer>
+  </developers>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <scm>
     <connection>scm:git:ssh://github.com/jenkinsci/customtoosl-plugin.git</connection>
