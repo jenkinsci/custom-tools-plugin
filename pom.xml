@@ -11,6 +11,12 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
+  <scm>
+    <connection>scm:git:ssh://github.com/jenkinsci/customtoosl-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/customtools-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/customtools-plugin</url>
+  </scm>
+
   <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
   <repositories>
     <repository>
