@@ -61,6 +61,10 @@ public class CustomTool extends ToolInstallation implements
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
     }
+    
+    public String getExportedPaths() {
+        return exportedPaths;
+    }
 
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
