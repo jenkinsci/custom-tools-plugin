@@ -34,6 +34,7 @@ import hudson.tools.ZipExtractionInstaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -135,19 +136,21 @@ public class CustomTool extends ToolInstallation implements
                 FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);
                 DirectoryScanner ds = fs.getDirectoryScanner();
 
-                return ds.getIncludedDirectories();
+                String[] pathsFound = ds.getIncludedDirectories();
+
+                List<String> completePaths = new ArrayList<String>();
+                for (String dir : pathsFound) {
+                    completePaths.add(new File(getHome(), dir).getAbsolutePath());
+                }
+
+                // be extra greedy in case they added "./. or . or ./"
+                completePaths.add(getHome());
+
+                return completePaths.toArray(new String[completePaths.size()]);
             };
         });
-        
-        List<String> completePaths = new ArrayList<String>();
-        for (String dir : pathsFound) {
-            completePaths.add(new File(getHome(), dir).getAbsolutePath());
-        }
-        
-        // be extra greedy in case they added "./. or . or ./"
-        completePaths.add(getHome());
-        
-        return completePaths;
+
+        return Arrays.asList(pathsFound);
     }
 
 }
