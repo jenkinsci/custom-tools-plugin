@@ -16,6 +16,10 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
+import com.synopsys.arc.jenkinsci.plugins.customtools.ArrayHelper;
+import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
+import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -34,6 +38,7 @@ import hudson.tools.ZipExtractionInstaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -65,16 +70,32 @@ public class CustomTool extends ToolInstallation implements
     public String getExportedPaths() {
         return exportedPaths;
     }
+        
+    
 
+    @Override
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
-                getProperties().toList(), exportedPaths);
+                getProperties().toList(), environment.expand(exportedPaths));
     }
 
+    @Override
     public CustomTool forNode(Node node, TaskListener log) throws IOException,
-            InterruptedException {
-        return new CustomTool(getName(), translateFor(node, log),
-                getProperties().toList(), exportedPaths);
+            InterruptedException {       
+        String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
+        String toolHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
+                
+        return new CustomTool(getName(), toolHomeDir,
+                getProperties().toList(), substitutedPath);
+    }
+    
+    /**
+     * Checks consistency of the tool.
+     * @throws CustomToolException Validation error
+     */
+    public void check() throws CustomToolException {
+        EnvStringParseHelper.checkStringForMacro("EXPORTED_PATHS", getExportedPaths());
+        EnvStringParseHelper.checkStringForMacro("HOME_DIR", getHome());
     }
 
     @Extension
@@ -131,18 +152,44 @@ public class CustomTool extends ToolInstallation implements
         String[] pathsFound = homePath.act(new FileCallable<String []>() {
 
             public String[] invoke(File f, VirtualChannel channel)
-                    throws IOException, InterruptedException {
-                FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);
+                    throws IOException, InterruptedException {           
+                String[] items = exportedPaths.split("\\s*,\\s*");
+                String[] res = new String[items.length];
+                int i=0;
+                for (String item : items) {
+                    File file = new File(item);
+                    if (!file.isAbsolute()) {
+                        file = new File (getHome(), item);
+                    }
+                    
+                    // Check if directory exists
+                    if (!file.isDirectory() || !file.exists()) {
+                        throw new AbortException("Wrong EXPORTED_PATHS configuration. Can't find "+file.getPath());
+                    } 
+                    res[i]=file.getAbsolutePath();
+                    i++;
+                }
+                return res;
+                
+                /**FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);
                 DirectoryScanner ds = fs.getDirectoryScanner();
-
-                return ds.getIncludedDirectories();
+                ds.scan();
+               */ 
+          /*      FileSet fsRoot = Util.createFileSet(new File("/"),exportedPaths);
+                DirectoryScanner dsRoot = fsRoot.getDirectoryScanner();
+                dsRoot.scan();
+                
+                // Merge two results        
+                String[] resRelative = ds.getIncludedDirectories();
+                String[] resGlobal = dsRoot.getIncludedDirectories();
+                return ArrayHelper.merge(resGlobal, resRelative);         */                   
             };
         });
         
+        
+        
         List<String> completePaths = new ArrayList<String>();
-        for (String dir : pathsFound) {
-            completePaths.add(new File(getHome(), dir).getAbsolutePath());
-        }
+        completePaths.addAll(Arrays.asList(pathsFound));
         
         // be extra greedy in case they added "./. or . or ./"
         completePaths.add(getHome());

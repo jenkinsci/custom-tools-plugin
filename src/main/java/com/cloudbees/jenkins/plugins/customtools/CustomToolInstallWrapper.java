@@ -16,6 +16,8 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
+import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
@@ -117,7 +119,14 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         //each tool can export zero or many directories to the PATH
         for (CustomTool tool : customTools()) {
             //this installs the tool if necessary
-            CustomTool installed = tool.forEnvironment(buildEnv).forNode(Computer.currentComputer().getNode(), listener);
+            CustomTool installed = tool.forNode(Computer.currentComputer().getNode(), listener).forEnvironment(buildEnv);
+            
+            try {
+                installed.check();
+            } catch (CustomToolException ex) {
+                throw new AbortException(ex.getMessage());
+            }
+            
             listener.getLogger().println(tool.getName()+" is installed at "+ installed.getHome());
 
             homes.put(tool.getName()+"_HOME", installed.getHome());
@@ -130,6 +139,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             public Proc launch(ProcStarter starter) throws IOException {
                 EnvVars vars = toEnvVars(starter.envs());
                 
+                // FIXME: Will cause errors in case of different master/slave platforms. Should be fixed somehow
                 for (String path : paths) {
                     vars.override("PATH+", path);
                 }

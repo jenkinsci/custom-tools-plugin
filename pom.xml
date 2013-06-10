@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.424</version><!-- which version of Jenkins is this plugin built against? -->
+    <version>1.480.3</version>
   </parent>
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
@@ -17,6 +17,14 @@
       <id>recampbell</id>
       <name>Ryan Campbell</name>
       <email>ryan.campbell@gmail.com</email>
+    </developer>
+    <developer>
+        <name>Oleg Nenashev</name>
+        <id>oleg_nenashev</id>
+        <organization>Synopsys, Inc.</organization>
+        <organizationUrl>http://www.synopsys.com</organizationUrl>          
+        <timezone>+4</timezone>
+        <email>nenashev@synopsys.com; o.v.nenashev@gmail.com</email>
     </developer>
   </developers>
 
