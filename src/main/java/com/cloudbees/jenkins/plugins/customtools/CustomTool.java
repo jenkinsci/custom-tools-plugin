@@ -16,15 +16,14 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
-import com.synopsys.arc.jenkinsci.plugins.customtools.ArrayHelper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
+import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.FilePath.FileCallable;
-import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.TaskListener;
 import hudson.model.Node;
@@ -42,8 +41,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.types.FileSet;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -142,16 +139,16 @@ public class CustomTool extends ToolInstallation implements
      * @throws IOException
      * @throws InterruptedException
      */
-    protected List<String> getPaths(Node node) throws IOException, InterruptedException {
+    protected PathsList getPaths(Node node) throws IOException, InterruptedException {
 
         FilePath homePath = new FilePath(node.getChannel(), getHome());
         if (exportedPaths == null) {
-            return Collections.emptyList();
+            return PathsList.EMPTY;
         }
 
-        String[] pathsFound = homePath.act(new FileCallable<String []>() {
+        PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {
 
-            public String[] invoke(File f, VirtualChannel channel)
+            public PathsList invoke(File f, VirtualChannel channel)
                     throws IOException, InterruptedException {           
                 String[] items = exportedPaths.split("\\s*,\\s*");
                 String[] res = new String[items.length];
@@ -169,32 +166,21 @@ public class CustomTool extends ToolInstallation implements
                     res[i]=file.getAbsolutePath();
                     i++;
                 }
-                return res;
+                return new PathsList(res);
                 
-                /**FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);
-                DirectoryScanner ds = fs.getDirectoryScanner();
-                ds.scan();
-               */ 
-          /*      FileSet fsRoot = Util.createFileSet(new File("/"),exportedPaths);
-                DirectoryScanner dsRoot = fsRoot.getDirectoryScanner();
-                dsRoot.scan();
-                
-                // Merge two results        
-                String[] resRelative = ds.getIncludedDirectories();
-                String[] resGlobal = dsRoot.getIncludedDirectories();
-                return ArrayHelper.merge(resGlobal, resRelative);         */                   
+                /**
+                 * Previous implementation:
+                 * FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);     
+                 * DirectoryScanner ds = fs.getDirectoryScanner();
+                 -- added: ds.scan();
+               */                 
             };
         });
-        
-        
-        
-        List<String> completePaths = new ArrayList<String>();
-        completePaths.addAll(Arrays.asList(pathsFound));
-        
+              
         // be extra greedy in case they added "./. or . or ./"
-        completePaths.add(getHome());
+        pathsFound.add(getHome());
         
-        return completePaths;
+        return pathsFound;
     }
 
 }

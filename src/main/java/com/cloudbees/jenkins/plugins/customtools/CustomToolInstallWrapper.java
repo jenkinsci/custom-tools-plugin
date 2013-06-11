@@ -17,10 +17,12 @@
 package com.cloudbees.jenkins.plugins.customtools;
 
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
+import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.Platform;
 import hudson.Proc;
 import hudson.Util;
 import hudson.model.BuildListener;
@@ -114,7 +116,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
         EnvVars buildEnv = build.getEnvironment(listener); 
         final EnvVars homes = new EnvVars();
-        final List<String> paths = new ArrayList<String>();
+        final PathsList paths = new PathsList();
         
         //each tool can export zero or many directories to the PATH
         for (CustomTool tool : customTools()) {
@@ -130,7 +132,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             listener.getLogger().println(tool.getName()+" is installed at "+ installed.getHome());
 
             homes.put(tool.getName()+"_HOME", installed.getHome());
-            paths.addAll(installed.getPaths(Computer.currentComputer().getNode()));
+            paths.add(installed.getPaths(Computer.currentComputer().getNode()));
         }
 
 
@@ -139,10 +141,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             public Proc launch(ProcStarter starter) throws IOException {
                 EnvVars vars = toEnvVars(starter.envs());
                 
-                // FIXME: Will cause errors in case of different master/slave platforms. Should be fixed somehow
-                for (String path : paths) {
-                    vars.override("PATH+", path);
-                }
+                // HACK: Avoids issue with invalid separators in EnvVars::override in case of different master/slave
+                String overridenPaths = vars.get("PATH");
+                overridenPaths += paths.toListString();
+                vars.override("PATH", overridenPaths);
                 vars.putAll(homes);
                 return super.launch(starter.envs(Util.mapToEnv(vars)));
             }

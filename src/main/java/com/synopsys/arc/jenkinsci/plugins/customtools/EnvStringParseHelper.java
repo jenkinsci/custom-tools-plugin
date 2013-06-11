@@ -19,8 +19,6 @@ import hudson.EnvVars;
 import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
-import hudson.slaves.NodePropertyDescriptor;
-import hudson.util.DescribableList;
 import java.util.Map;
 
 /**
