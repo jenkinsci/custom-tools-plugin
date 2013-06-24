@@ -38,6 +38,7 @@ import hudson.tasks.BuildWrapperDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import net.sf.json.JSONObject;
 
@@ -121,7 +122,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         //each tool can export zero or many directories to the PATH
         for (CustomTool tool : customTools()) {
             //this installs the tool if necessary
-            CustomTool installed = tool.forNode(Computer.currentComputer().getNode(), listener).forEnvironment(buildEnv);
+            CustomTool installed = tool
+                    .forNode(Computer.currentComputer().getNode(), listener)
+                    .forEnvironment(buildEnv)
+                    .forBuildProperties(build.getProject().getProperties());
             
             try {
                 installed.check();

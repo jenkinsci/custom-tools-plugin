@@ -25,6 +25,8 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.FilePath.FileCallable;
 import hudson.model.EnvironmentSpecific;
+import hudson.model.JobProperty;
+import hudson.model.JobPropertyDescriptor;
 import hudson.model.TaskListener;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
@@ -36,10 +38,9 @@ import hudson.tools.ZipExtractionInstaller;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -84,6 +85,10 @@ public class CustomTool extends ToolInstallation implements
                 
         return new CustomTool(getName(), toolHomeDir,
                 getProperties().toList(), substitutedPath);
+    }
+    
+    public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
+        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths());
     }
     
     /**
