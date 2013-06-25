@@ -74,7 +74,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
     @DataBoundConstructor
     public CustomToolInstallWrapper(SelectedTool[] selectedTools) {
-        this.selectedTools = selectedTools;
+        this.selectedTools = (selectedTools != null) ? selectedTools : new SelectedTool[0];
     }
     
     @Override
