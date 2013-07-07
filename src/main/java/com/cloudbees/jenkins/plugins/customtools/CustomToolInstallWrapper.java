@@ -128,12 +128,18 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         return new DecoratedLauncher(launcher) {            
             @Override
             public Proc launch(ProcStarter starter) throws IOException {
-                EnvVars vars = toEnvVars(starter.envs());
-                
-                for (String path : paths) {
-                    vars.override("PATH+", path);
+                String[] envs;
+                try {
+                    envs = starter.envs();
+                } catch (final NullPointerException ex) {
+                    envs = new String[0];
                 }
-                vars.putAll(homes);
+                final EnvVars vars = toEnvVars(envs);
+
+                for (int i = 0; i < paths.size(); i++) {
+                    vars.put("PATH+" + i, paths.get(i));
+                }
+                
                 return super.launch(starter.envs(Util.mapToEnv(vars)));
             }
 
