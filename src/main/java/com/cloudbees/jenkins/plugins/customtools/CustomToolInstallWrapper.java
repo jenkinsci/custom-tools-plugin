@@ -16,9 +16,13 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
+import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
+import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.Platform;
 import hudson.Proc;
 import hudson.Util;
 import hudson.model.BuildListener;
@@ -34,6 +38,7 @@ import hudson.tasks.BuildWrapperDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import net.sf.json.JSONObject;
 
@@ -112,16 +117,26 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
         EnvVars buildEnv = build.getEnvironment(listener); 
         final EnvVars homes = new EnvVars();
-        final List<String> paths = new ArrayList<String>();
+        final PathsList paths = new PathsList();
         
         //each tool can export zero or many directories to the PATH
         for (CustomTool tool : customTools()) {
             //this installs the tool if necessary
-            CustomTool installed = tool.forEnvironment(buildEnv).forNode(Computer.currentComputer().getNode(), listener);
+            CustomTool installed = tool
+                    .forNode(Computer.currentComputer().getNode(), listener)
+                    .forEnvironment(buildEnv)
+                    .forBuildProperties(build.getProject().getProperties());
+            
+            try {
+                installed.check();
+            } catch (CustomToolException ex) {
+                throw new AbortException(ex.getMessage());
+            }
+            
             listener.getLogger().println(tool.getName()+" is installed at "+ installed.getHome());
 
             homes.put(tool.getName()+"_HOME", installed.getHome());
-            paths.addAll(installed.getPaths(Computer.currentComputer().getNode()));
+            paths.add(installed.getPaths(Computer.currentComputer().getNode()));
         }
 
 
@@ -130,9 +145,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             public Proc launch(ProcStarter starter) throws IOException {
                 EnvVars vars = toEnvVars(starter.envs());
                 
-                for (String path : paths) {
-                    vars.override("PATH+", path);
-                }
+                // HACK: Avoids issue with invalid separators in EnvVars::override in case of different master/slave
+                String overridenPaths = vars.get("PATH");
+                overridenPaths += paths.toListString();
+                vars.override("PATH", overridenPaths);
                 vars.putAll(homes);
                 return super.launch(starter.envs(Util.mapToEnv(vars)));
             }
