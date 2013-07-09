@@ -16,12 +16,17 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
+import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
+import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
+import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
+import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.FilePath.FileCallable;
-import hudson.Util;
 import hudson.model.EnvironmentSpecific;
+import hudson.model.JobProperty;
+import hudson.model.JobPropertyDescriptor;
 import hudson.model.TaskListener;
 import hudson.model.Node;
 import hudson.remoting.VirtualChannel;
@@ -33,12 +38,10 @@ import hudson.tools.ZipExtractionInstaller;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.tools.ant.DirectoryScanner;
-import org.apache.tools.ant.types.FileSet;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -65,16 +68,36 @@ public class CustomTool extends ToolInstallation implements
     public String getExportedPaths() {
         return exportedPaths;
     }
+        
+    
 
+    @Override
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
-                getProperties().toList(), exportedPaths);
+                getProperties().toList(), environment.expand(exportedPaths));
     }
 
+    @Override
     public CustomTool forNode(Node node, TaskListener log) throws IOException,
-            InterruptedException {
-        return new CustomTool(getName(), translateFor(node, log),
-                getProperties().toList(), exportedPaths);
+            InterruptedException {       
+        String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
+        String toolHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
+                
+        return new CustomTool(getName(), toolHomeDir,
+                getProperties().toList(), substitutedPath);
+    }
+    
+    public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
+        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths());
+    }
+    
+    /**
+     * Checks consistency of the tool.
+     * @throws CustomToolException Validation error
+     */
+    public void check() throws CustomToolException {
+        EnvStringParseHelper.checkStringForMacro("EXPORTED_PATHS", getExportedPaths());
+        EnvStringParseHelper.checkStringForMacro("HOME_DIR", getHome());
     }
 
     @Extension
@@ -121,33 +144,48 @@ public class CustomTool extends ToolInstallation implements
      * @throws IOException
      * @throws InterruptedException
      */
-    protected List<String> getPaths(Node node) throws IOException, InterruptedException {
+    protected PathsList getPaths(Node node) throws IOException, InterruptedException {
 
         FilePath homePath = new FilePath(node.getChannel(), getHome());
         if (exportedPaths == null) {
-            return Collections.emptyList();
+            return PathsList.EMPTY;
         }
 
-        String[] pathsFound = homePath.act(new FileCallable<String []>() {
+        PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {
 
-            public String[] invoke(File f, VirtualChannel channel)
-                    throws IOException, InterruptedException {
-                FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);
-                DirectoryScanner ds = fs.getDirectoryScanner();
-
-                return ds.getIncludedDirectories();
+            public PathsList invoke(File f, VirtualChannel channel)
+                    throws IOException, InterruptedException {           
+                String[] items = exportedPaths.split("\\s*,\\s*");
+                String[] res = new String[items.length];
+                int i=0;
+                for (String item : items) {
+                    File file = new File(item);
+                    if (!file.isAbsolute()) {
+                        file = new File (getHome(), item);
+                    }
+                    
+                    // Check if directory exists
+                    if (!file.isDirectory() || !file.exists()) {
+                        throw new AbortException("Wrong EXPORTED_PATHS configuration. Can't find "+file.getPath());
+                    } 
+                    res[i]=file.getAbsolutePath();
+                    i++;
+                }
+                return new PathsList(res);
+                
+                /**
+                 * Previous implementation:
+                 * FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);     
+                 * DirectoryScanner ds = fs.getDirectoryScanner();
+                 -- added: ds.scan();
+               */                 
             };
         });
-        
-        List<String> completePaths = new ArrayList<String>();
-        for (String dir : pathsFound) {
-            completePaths.add(new File(getHome(), dir).getAbsolutePath());
-        }
-        
+              
         // be extra greedy in case they added "./. or . or ./"
-        completePaths.add(getHome());
+        pathsFound.add(getHome());
         
-        return completePaths;
+        return pathsFound;
     }
 
 }
