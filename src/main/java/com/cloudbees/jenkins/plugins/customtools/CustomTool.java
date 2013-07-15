@@ -81,9 +81,9 @@ public class CustomTool extends ToolInstallation implements
     public CustomTool forNode(Node node, TaskListener log) throws IOException,
             InterruptedException {       
         String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
-        String toolHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
+        String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
                 
-        return new CustomTool(getName(), toolHomeDir,
+        return new CustomTool(getName(), substitutedHomeDir,
                 getProperties().toList(), substitutedPath);
     }
     

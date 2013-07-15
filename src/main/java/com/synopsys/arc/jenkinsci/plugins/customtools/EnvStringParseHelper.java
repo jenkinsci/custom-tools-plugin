@@ -16,13 +16,14 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools;
 
 import hudson.EnvVars;
+import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import java.util.Map;
 
 /**
- * Provides parsing of environment variables in input string;
+ * Provides parsing of environment variables in input string.
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  * @since 0.3
  */
@@ -58,16 +59,36 @@ public class EnvStringParseHelper {
             return exportedPaths;
         } 
         
+        // Check node properties
         String substitutedString = exportedPaths;
         for (NodeProperty<?> entry : node.getNodeProperties()) {
-            // Get environment variables
-            if (EnvironmentVariablesNodeProperty.class.equals(entry.getClass())) {
-               EnvironmentVariablesNodeProperty prop = (EnvironmentVariablesNodeProperty)entry;
-               substitutedString = resolveExportedPath(substitutedString, prop.getEnvVars());
-            }
-            //TODO: add support of other configuration entries or propagate environments
-        }        
+            substitutedString = substituteNodeProperty(substitutedString, entry);
+        }    
+        
+        // Substitute global variables
+        for (NodeProperty<?> entry : Hudson.getInstance().getGlobalNodeProperties()) {
+            substitutedString = substituteNodeProperty(substitutedString, entry);
+        } 
+        
         return substitutedString;
+    }
+    
+    /**
+     * Substitutes string according to node property.
+     * @param macroString String to be substituted
+     * @param property Node property
+     * @return Substituted string
+     * @since 0.3
+     */
+    public static String substituteNodeProperty(String macroString, NodeProperty<?> property) {
+        // Get environment variables
+        if (EnvironmentVariablesNodeProperty.class.equals(property.getClass())) {
+           EnvironmentVariablesNodeProperty prop = (EnvironmentVariablesNodeProperty)property;
+           return resolveExportedPath(macroString, prop.getEnvVars());
+        }
+        
+        //TODO: add support of other configuration entries or propagate environments
+        return macroString;
     }
     
     /**
