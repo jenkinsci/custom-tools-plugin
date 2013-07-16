@@ -18,6 +18,7 @@ package com.cloudbees.jenkins.plugins.customtools;
 
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
+import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -25,6 +26,7 @@ import hudson.Launcher;
 import hudson.Platform;
 import hudson.Proc;
 import hudson.Util;
+import hudson.matrix.MatrixBuild;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
@@ -76,12 +78,14 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }
     
     private SelectedTool[] selectedTools = new SelectedTool[0];
-
-    @DataBoundConstructor
-    public CustomToolInstallWrapper(SelectedTool[] selectedTools) {
-        this.selectedTools = (selectedTools != null) ? selectedTools : new SelectedTool[0];
-    }
+    private MulticonfigWrapperOptions multiconfigOptions;    
     
+    @DataBoundConstructor
+    public CustomToolInstallWrapper(SelectedTool[] selectedTools, MulticonfigWrapperOptions multiconfigOptions) {
+        this.selectedTools = (selectedTools != null) ? selectedTools : new SelectedTool[0];
+        this.multiconfigOptions = (multiconfigOptions != null) ? multiconfigOptions : MulticonfigWrapperOptions.DEFAULT;
+    }
+       
     @Override
     public Environment setUp(AbstractBuild build, Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException {
@@ -119,6 +123,14 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         final EnvVars homes = new EnvVars();
         final PathsList paths = new PathsList();
         
+        // Handle multi-configuration build
+        if (MatrixBuild.class.isAssignableFrom(build.getClass())) {
+            listener.getLogger().println("[CustomTools] - Skipping installation of tools at the master job");
+            if (multiconfigOptions.isSkipMasterInstallation()) {
+                return launcher;
+            }
+        }
+        
         //each tool can export zero or many directories to the PATH
         for (CustomTool tool : customTools()) {
             //this installs the tool if necessary
@@ -133,7 +145,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 throw new AbortException(ex.getMessage());
             }
             
-            listener.getLogger().println(tool.getName()+" is installed at "+ installed.getHome());
+            listener.getLogger().println("[CustomTools] - "+tool.getName()+" is installed at "+ installed.getHome());
 
             homes.put(tool.getName()+"_HOME", installed.getHome());
             paths.add(installed.getPaths(Computer.currentComputer().getNode()));
@@ -167,6 +179,24 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     public Descriptor<BuildWrapper> getDescriptor() {
         return DESCRIPTOR;
     }
+    
+    /**
+     * Check if build has specific multi-configuration options
+     * @return True if multi-configuration options are configured
+     * @since 0.3
+     */
+    public boolean hasMulticonfigOptions() {
+        return multiconfigOptions != MulticonfigWrapperOptions.DEFAULT;
+    }
+
+    /**
+     * Gets multi-configuration job parameters.
+     * @return 
+     * @since 0.3
+     */
+    public MulticonfigWrapperOptions getMulticonfigOptions() {
+        return multiconfigOptions;
+    }  
 
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
@@ -192,10 +222,9 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         @Override
         public boolean configure(StaplerRequest req, JSONObject json)
                 throws hudson.model.Descriptor.FormException {
-            // TODO Auto-generated method stub
+            //TODO: Auto-generated method stub
             return super.configure(req, json);
-        }
-
-    }
+        }     
+    }    
 }
 
