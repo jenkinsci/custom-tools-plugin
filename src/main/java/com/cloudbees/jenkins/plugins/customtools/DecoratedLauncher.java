@@ -19,9 +19,12 @@ package com.cloudbees.jenkins.plugins.customtools;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Proc;
+import hudson.model.Computer;
+import hudson.model.TaskListener;
 import hudson.remoting.Channel;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
@@ -60,4 +63,28 @@ public class DecoratedLauncher extends Launcher {
 
     }
 
+    @Override
+    public boolean isUnix() {
+        return inner.isUnix(); 
+    }  
+
+    @Override
+    public Proc launch(String[] cmd, boolean[] mask, String[] env, InputStream in, OutputStream out, FilePath workDir) throws IOException {
+        return inner.launch(cmd, mask, env, in, out, workDir); 
+    }
+    
+    @Override
+    public Computer getComputer() {
+        return inner.getComputer(); 
+    }
+
+    @Override
+    public TaskListener getListener() {
+        return inner.getListener(); 
+    }
+
+    @Override
+    public String toString() {
+        return super.toString()+"; decorates "+inner.toString();
+    }   
 }
