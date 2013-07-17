@@ -23,7 +23,6 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.Platform;
 import hudson.Proc;
 import hudson.Util;
 import hudson.matrix.MatrixBuild;
@@ -40,7 +39,6 @@ import hudson.tasks.BuildWrapperDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import net.sf.json.JSONObject;
 
@@ -162,6 +160,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 overridenPaths += paths.toListString();
                 vars.override("PATH", overridenPaths);
                 vars.putAll(homes);
+                
+                // Inject additional variables
+                vars.
+                
                 return super.launch(starter.envs(Util.mapToEnv(vars)));
             }
 

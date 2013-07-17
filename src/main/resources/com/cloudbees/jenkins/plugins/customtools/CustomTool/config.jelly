@@ -35,4 +35,8 @@ THE SOFTWARE.
   <f:entry title="${%Installation directory}" field="home">
     <f:textbox/>
   </f:entry>
+  <f:entry title="${%Exported variables" field="additionalVariables">
+    <f:textbox/>
+    <f:description>Variables with macro support. *.prop file format</f:description>
+  </f:entry>
  </j:jelly>

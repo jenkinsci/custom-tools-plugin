@@ -24,6 +24,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.FilePath.FileCallable;
+import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
@@ -57,38 +58,43 @@ public class CustomTool extends ToolInstallation implements
      * File set includes string like **\/bin These will be added to the PATH
      */
     private final String exportedPaths;
+    private final String additionalVariables;
 
     @DataBoundConstructor
     public CustomTool(String name, String home, List properties,
-            String exportedPaths) {
+            String exportedPaths, String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
+        this.additionalVariables = Util.fixEmpty(additionalVariables);
     }
     
     public String getExportedPaths() {
         return exportedPaths;
     }
-        
-    
 
+    public String getAdditionalVariables() {
+        return additionalVariables;
+    }
+       
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
-                getProperties().toList(), environment.expand(exportedPaths));
+                getProperties().toList(), environment.expand(exportedPaths),
+                environment.expand(additionalVariables));
     }
 
     @Override
     public CustomTool forNode(Node node, TaskListener log) throws IOException,
             InterruptedException {       
         String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
+        String substitutedAddVars = EnvStringParseHelper.resolveExportedPath(additionalVariables, node);
         String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
-                
-        return new CustomTool(getName(), substitutedHomeDir,
-                getProperties().toList(), substitutedPath);
+        
+        return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), substitutedPath, substitutedAddVars);
     }
     
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths());
+        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), getAdditionalVariables());
     }
     
     /**
