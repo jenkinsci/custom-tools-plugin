@@ -42,6 +42,7 @@ import org.jvnet.hudson.test.HudsonTestCase;
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
 import com.cloudbees.jenkins.plugins.customtools.CustomToolInstallWrapper;
 import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
+import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 
 
 public class CustomToolInstallerTest extends HudsonTestCase {
@@ -72,7 +73,7 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         
         CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
-                new CustomToolInstallWrapper.SelectedTool[] { selectedTool });
+                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT);
         project.getBuildWrappersList().add(wrapper);
         Builder b = new Shell("echo $PATH; mytrue");
         project.getBuildersList().add(b);
