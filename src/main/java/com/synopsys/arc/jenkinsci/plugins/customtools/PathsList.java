@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -32,13 +34,13 @@ public class PathsList implements Serializable {
     public String pathSeparator;
     public String separator;
     
-    public static final PathsList EMPTY = new PathsList(new String[0], null);
+    public static final PathsList EMPTY = new PathsList(new LinkedList<String>(), null);
 
     /**
      * Constructor. Sets system's default separator and pathSeparator
      * @param paths List of paths to be returned
      */
-    public PathsList(String[] paths, String homeDir) {
+    public PathsList(Collection<String> paths, String homeDir) {
         this(paths, File.pathSeparator, File.separator, homeDir);
     }
 
@@ -46,11 +48,11 @@ public class PathsList implements Serializable {
      * Empty constructor. doesn't set pathSeparator and separator
      */
     public PathsList() {
-        this(new String[0], null, null, null);
+        this(new LinkedList<String>(), null, null, null);
     }
     
-    public PathsList(String[] paths, String pathSeparator, String separator, String homeDir) {
-        this.paths = new ArrayList<String>(Arrays.asList(paths));
+    public PathsList(Collection<String> paths, String pathSeparator, String separator, String homeDir) {
+        this.paths = new ArrayList<String>(paths);
         this.pathSeparator = pathSeparator;
         this.separator = separator;
         this.homeDir = homeDir;
@@ -79,6 +81,7 @@ public class PathsList implements Serializable {
         if (homeDir == null) {
             homeDir = pathsList.homeDir;
         }
+               
         return this.paths.addAll(pathsList.paths);
     }
     
@@ -88,6 +91,11 @@ public class PathsList implements Serializable {
             builder.append(pathSeparator);
             builder.append(path);
         } 
+        
+        // Add homeDir as well (legacy behavior)
+        builder.append(pathSeparator);
+        builder.append(homeDir);
+        
         return builder.toString();
     }
 }

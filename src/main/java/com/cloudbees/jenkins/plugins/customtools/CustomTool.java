@@ -38,7 +38,9 @@ import hudson.tools.ZipExtractionInstaller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -165,8 +167,7 @@ public class CustomTool extends ToolInstallation implements
             public PathsList invoke(File f, VirtualChannel channel)
                     throws IOException, InterruptedException {           
                 String[] items = exportedPaths.split("\\s*,\\s*");
-                String[] res = new String[items.length];
-                int i=0;
+                List<String> outList = new LinkedList<String>();
                 for (String item : items) {
                     if (item.isEmpty()) {
                         continue;
@@ -181,13 +182,12 @@ public class CustomTool extends ToolInstallation implements
                     if (!file.isDirectory() || !file.exists()) {
                         throw new AbortException("Wrong EXPORTED_PATHS configuration. Can't find "+file.getPath());
                     } 
-                    res[i]=file.getAbsolutePath();
-                    i++;
+                    outList.add(file.getAbsolutePath());
                 }
                 
                 // resolve home dir
-                File homeDir = new File(getHome());            
-                return new PathsList(res, homeDir.getAbsolutePath());               
+                File homeDir = new File(getHome());   
+                return new PathsList(outList, homeDir.getAbsolutePath());               
             };
         });
               
