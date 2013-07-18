@@ -92,8 +92,7 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool("MyTrue", null, properties,
-                "./");
+        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null);
         return installation;
     }
     

@@ -18,6 +18,7 @@ package com.cloudbees.jenkins.plugins.customtools;
 
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
+import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -39,6 +40,7 @@ import hudson.tools.ZipExtractionInstaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -57,24 +59,40 @@ public class CustomTool extends ToolInstallation implements
      * File set includes string like **\/bin These will be added to the PATH
      */
     private final String exportedPaths;
-
+    private final LabelSpecifics[] labelSpecifics;
+    private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
+    private transient String correctedHome;
+    
     @DataBoundConstructor
     public CustomTool(String name, String home, List properties,
-            String exportedPaths) {
+            String exportedPaths, LabelSpecifics[] labelSpecifics) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
+        this.labelSpecifics = labelSpecifics;
     }
     
     public String getExportedPaths() {
         return exportedPaths;
     }
-        
-    
 
+    @Override
+    public String getHome() {
+        return (correctedHome != null) ? correctedHome : super.getHome(); 
+    }
+        
+    public void correctHome(PathsList pathList) {
+        correctedHome = pathList.getHomeDir(); 
+    }
+
+    public LabelSpecifics[] getLabelSpecifics() {
+        return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
+    }
+         
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
-                getProperties().toList(), environment.expand(exportedPaths));
+                getProperties().toList(), environment.expand(exportedPaths),
+                LabelSpecifics.substitute(getLabelSpecifics(), environment));
     }
 
     @Override
@@ -82,13 +100,14 @@ public class CustomTool extends ToolInstallation implements
             InterruptedException {       
         String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
         String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
-                
-        return new CustomTool(getName(), substitutedHomeDir,
-                getProperties().toList(), substitutedPath);
+        
+        return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), 
+                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node));
     }
     
+    //FIXME: just a stub
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths());
+        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), getLabelSpecifics());
     }
     
     /**
@@ -156,9 +175,12 @@ public class CustomTool extends ToolInstallation implements
             public PathsList invoke(File f, VirtualChannel channel)
                     throws IOException, InterruptedException {           
                 String[] items = exportedPaths.split("\\s*,\\s*");
-                String[] res = new String[items.length];
-                int i=0;
+                List<String> outList = new LinkedList<String>();
                 for (String item : items) {
+                    if (item.isEmpty()) {
+                        continue;
+                    } 
+                    
                     File file = new File(item);
                     if (!file.isAbsolute()) {
                         file = new File (getHome(), item);
@@ -168,23 +190,15 @@ public class CustomTool extends ToolInstallation implements
                     if (!file.isDirectory() || !file.exists()) {
                         throw new AbortException("Wrong EXPORTED_PATHS configuration. Can't find "+file.getPath());
                     } 
-                    res[i]=file.getAbsolutePath();
-                    i++;
+                    outList.add(file.getAbsolutePath());
                 }
-                return new PathsList(res);
                 
-                /**
-                 * Previous implementation:
-                 * FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);     
-                 * DirectoryScanner ds = fs.getDirectoryScanner();
-                 -- added: ds.scan();
-               */                 
+                // resolve home dir
+                File homeDir = new File(getHome());   
+                return new PathsList(outList, homeDir.getAbsolutePath());               
             };
         });
               
-        // be extra greedy in case they added "./. or . or ./"
-        pathsFound.add(getHome());
-        
         return pathsFound;
     }
 
