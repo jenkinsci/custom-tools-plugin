@@ -145,10 +145,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 throw new AbortException(ex.getMessage());
             }
             
-            listener.getLogger().println("[CustomTools] - "+tool.getName()+" is installed at "+ installed.getHome());
-
-            homes.put(tool.getName()+"_HOME", installed.getHome());
+            // Get infromation about pathes from target executor
             paths.add(installed.getPaths(Computer.currentComputer().getNode()));
+            installed.correctHome(paths);
+            listener.getLogger().println("[CustomTools] - "+tool.getName()+" is installed at "+ installed.getHome());
+     
+            homes.put(tool.getName()+"_HOME", installed.getHome());
         }
 
 

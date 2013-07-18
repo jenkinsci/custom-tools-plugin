@@ -38,7 +38,9 @@ import hudson.tools.ZipExtractionInstaller;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -58,6 +60,8 @@ public class CustomTool extends ToolInstallation implements
      */
     private final String exportedPaths;
 
+    private transient String correctedHome;
+    
     @DataBoundConstructor
     public CustomTool(String name, String home, List properties,
             String exportedPaths) {
@@ -68,8 +72,15 @@ public class CustomTool extends ToolInstallation implements
     public String getExportedPaths() {
         return exportedPaths;
     }
+
+    @Override
+    public String getHome() {
+        return (correctedHome != null) ? correctedHome : super.getHome(); 
+    }
         
-    
+    public void correctHome(PathsList pathList) {
+        correctedHome = pathList.getHomeDir(); 
+    }
 
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
@@ -156,9 +167,12 @@ public class CustomTool extends ToolInstallation implements
             public PathsList invoke(File f, VirtualChannel channel)
                     throws IOException, InterruptedException {           
                 String[] items = exportedPaths.split("\\s*,\\s*");
-                String[] res = new String[items.length];
-                int i=0;
+                List<String> outList = new LinkedList<String>();
                 for (String item : items) {
+                    if (item.isEmpty()) {
+                        continue;
+                    } 
+                    
                     File file = new File(item);
                     if (!file.isAbsolute()) {
                         file = new File (getHome(), item);
@@ -168,23 +182,15 @@ public class CustomTool extends ToolInstallation implements
                     if (!file.isDirectory() || !file.exists()) {
                         throw new AbortException("Wrong EXPORTED_PATHS configuration. Can't find "+file.getPath());
                     } 
-                    res[i]=file.getAbsolutePath();
-                    i++;
+                    outList.add(file.getAbsolutePath());
                 }
-                return new PathsList(res);
                 
-                /**
-                 * Previous implementation:
-                 * FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);     
-                 * DirectoryScanner ds = fs.getDirectoryScanner();
-                 -- added: ds.scan();
-               */                 
+                // resolve home dir
+                File homeDir = new File(getHome());   
+                return new PathsList(outList, homeDir.getAbsolutePath());               
             };
         });
               
-        // be extra greedy in case they added "./. or . or ./"
-        pathsFound.add(getHome());
-        
         return pathsFound;
     }
 
