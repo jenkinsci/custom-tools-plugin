@@ -35,8 +35,25 @@ THE SOFTWARE.
   <f:entry title="${%Installation directory}" field="home">
     <f:textbox/>
   </f:entry>
-  <f:entry title="${%Exported variables" field="additionalVariables">
+  <f:entry title="${%Exported variables}" field="additionalVariables">
     <f:textbox/>
     <f:description>Variables with macro support. *.prop file format</f:description>
   </f:entry>
+  <f:entry title="${%Label-specific options}">
+        <f:repeatable name="labelSpecifics" header="${%Label specific}" add="${%Add label}" var="labelSpecific" field="labelSpecifics">                                    
+            <table width="100%">
+            <f:entry title="${%Label}" field="label">
+                <f:textbox/>  
+            </f:entry>
+            <f:entry title="${%Additional variables}" field="additionalVars">
+                <f:textarea/>  
+            </f:entry>          
+            <f:entry title="">
+                <div align="right">
+                    <f:repeatableDeleteButton value="Remove..."/> 
+                </div>
+            </f:entry>
+            </table>        
+        </f:repeatable>
+    </f:entry> 
  </j:jelly>

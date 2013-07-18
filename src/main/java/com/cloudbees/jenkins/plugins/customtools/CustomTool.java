@@ -18,13 +18,13 @@ package com.cloudbees.jenkins.plugins.customtools;
 
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
+import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.FilePath.FileCallable;
-import hudson.Util;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
@@ -58,43 +58,44 @@ public class CustomTool extends ToolInstallation implements
      * File set includes string like **\/bin These will be added to the PATH
      */
     private final String exportedPaths;
-    private final String additionalVariables;
+    private final LabelSpecifics[] labelSpecifics;
 
     @DataBoundConstructor
     public CustomTool(String name, String home, List properties,
-            String exportedPaths, String additionalVariables) {
+            String exportedPaths, LabelSpecifics[] labelSpecifics) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
-        this.additionalVariables = Util.fixEmpty(additionalVariables);
+        this.labelSpecifics = (labelSpecifics != null) ? labelSpecifics : new LabelSpecifics[0];
     }
     
     public String getExportedPaths() {
         return exportedPaths;
     }
 
-    public String getAdditionalVariables() {
-        return additionalVariables;
+    public LabelSpecifics[] getLabelSpecifics() {
+        return labelSpecifics;
     }
-       
+         
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
                 getProperties().toList(), environment.expand(exportedPaths),
-                environment.expand(additionalVariables));
+                LabelSpecifics.substitute(labelSpecifics, environment));
     }
 
     @Override
     public CustomTool forNode(Node node, TaskListener log) throws IOException,
             InterruptedException {       
         String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
-        String substitutedAddVars = EnvStringParseHelper.resolveExportedPath(additionalVariables, node);
         String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
         
-        return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), substitutedPath, substitutedAddVars);
+        return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), 
+                substitutedPath, LabelSpecifics.substitute(labelSpecifics, node));
     }
     
+    //FIXME: just a stub
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), getAdditionalVariables());
+        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), labelSpecifics);
     }
     
     /**
