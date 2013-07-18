@@ -19,6 +19,7 @@ import hudson.EnvVars;
 import hudson.Util;
 import hudson.model.Label;
 import hudson.model.Node;
+import java.io.Serializable;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -27,7 +28,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  * @since 0.3
  */
-public class LabelSpecifics {
+public class LabelSpecifics implements Serializable {
     private String label;
     private String additionalVars;
 

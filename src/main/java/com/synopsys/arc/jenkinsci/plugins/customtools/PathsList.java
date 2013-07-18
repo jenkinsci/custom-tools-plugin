@@ -18,7 +18,6 @@ package com.synopsys.arc.jenkinsci.plugins.customtools;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;

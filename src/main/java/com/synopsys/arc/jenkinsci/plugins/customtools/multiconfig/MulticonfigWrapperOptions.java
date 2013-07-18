@@ -15,13 +15,14 @@
  */
 package com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig;
 
+import java.io.Serializable;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Provides specific options for multi-configuration jobs.
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  */
-public class MulticonfigWrapperOptions {
+public class MulticonfigWrapperOptions implements Serializable {
     private boolean skipMasterInstallation;
     public static final MulticonfigWrapperOptions DEFAULT = new MulticonfigWrapperOptions(false);
 
