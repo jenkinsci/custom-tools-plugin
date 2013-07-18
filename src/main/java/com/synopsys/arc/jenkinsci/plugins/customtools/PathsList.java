@@ -32,7 +32,7 @@ public class PathsList implements Serializable {
     public String homeDir;
     public String pathSeparator;
     public String separator;
-    
+
     public static final PathsList EMPTY = new PathsList(new LinkedList<String>(), null);
 
     /**
@@ -77,8 +77,8 @@ public class PathsList implements Serializable {
         if (separator == null) {
             separator = pathsList.separator;
         }
-        if (homeDir == null) {
-            homeDir = pathsList.homeDir;
+        if (pathsList.homeDir != null) {
+            this.paths.add(pathsList.homeDir);
         }
                
         return this.paths.addAll(pathsList.paths);
@@ -93,8 +93,7 @@ public class PathsList implements Serializable {
         
         // Add homeDir as well (legacy behavior)
         builder.append(pathSeparator);
-        builder.append(homeDir);
-        
+           
         return builder.toString();
     }
 }

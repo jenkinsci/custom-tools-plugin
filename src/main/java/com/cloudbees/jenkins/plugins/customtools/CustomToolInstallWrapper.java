@@ -150,10 +150,11 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             
             // Prepare additional variables
             Node node =  Computer.currentComputer().getNode();
-            paths.add(installed.getPaths(node));
-            installed.correctHome(paths);
+            PathsList installedPaths = installed.getPaths(node);          
+            installed.correctHome(installedPaths);
+            paths.add(installedPaths);
 
-            for (LabelSpecifics spec : tool.getLabelSpecifics()) {
+            for (LabelSpecifics spec : installed.getLabelSpecifics()) {
                 if (!spec.appliesTo(node)) {
                     continue;
                 }
@@ -162,8 +163,9 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                     additionalVarInjectors.add(EnvVariablesInjector.Create(spec.getAdditionalVars()));
                 }
             }
-             listener.getLogger().println("[CustomTools] - "+tool.getName()+" is installed at "+ installed.getHome());
-            homes.put(tool.getName()+"_HOME", installed.getHome());
+            
+            listener.getLogger().println("[CustomTools] - "+installed.getName()+" is installed at "+ installed.getHome());
+            homes.put(installed.getName()+"_HOME", installed.getHome());
         }
 
 
