@@ -17,13 +17,14 @@
 package com.cloudbees.jenkins.plugins.customtools;
 
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
+import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
+import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.Platform;
 import hudson.Proc;
 import hudson.Util;
 import hudson.matrix.MatrixBuild;
@@ -33,14 +34,15 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
+import hudson.model.Node;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import net.sf.json.JSONObject;
 
@@ -122,6 +124,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         EnvVars buildEnv = build.getEnvironment(listener); 
         final EnvVars homes = new EnvVars();
         final PathsList paths = new PathsList();
+        final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
         
         // Handle multi-configuration build
         if (MatrixBuild.class.isAssignableFrom(build.getClass())) {
@@ -145,6 +148,18 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 throw new AbortException(ex.getMessage());
             }
             
+            // Prepare additional variables
+            Node node =  Computer.currentComputer().getNode();
+            for (LabelSpecifics spec : tool.getLabelSpecifics()) {
+                if (!spec.appliesTo(node)) {
+                    continue;
+                }
+                               
+                if (spec.hasAdditionalVars()) {
+                    additionalVarInjectors.add(EnvVariablesInjector.Create(spec.getAdditionalVars()));
+                }
+            }
+            
             listener.getLogger().println("[CustomTools] - "+tool.getName()+" is installed at "+ installed.getHome());
 
             homes.put(tool.getName()+"_HOME", installed.getHome());
@@ -162,6 +177,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 overridenPaths += paths.toListString();
                 vars.override("PATH", overridenPaths);
                 vars.putAll(homes);
+                
+                // Inject additional variables
+                for (EnvVariablesInjector injector : additionalVarInjectors) {
+                    injector.Inject(vars);
+                }
+                
                 return super.launch(starter.envs(Util.mapToEnv(vars)));
             }
 
