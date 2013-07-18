@@ -72,7 +72,7 @@ public class EnvStringParseHelper {
         
         return substitutedString;
     }
-    
+        
     /**
      * Substitutes string according to node property.
      * @param macroString String to be substituted

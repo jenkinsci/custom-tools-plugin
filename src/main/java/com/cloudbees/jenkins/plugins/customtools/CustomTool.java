@@ -18,6 +18,7 @@ package com.cloudbees.jenkins.plugins.customtools;
 
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
+import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -59,14 +60,16 @@ public class CustomTool extends ToolInstallation implements
      * File set includes string like **\/bin These will be added to the PATH
      */
     private final String exportedPaths;
+    private final LabelSpecifics[] labelSpecifics;
 
     private transient String correctedHome;
     
     @DataBoundConstructor
     public CustomTool(String name, String home, List properties,
-            String exportedPaths) {
+            String exportedPaths, LabelSpecifics[] labelSpecifics) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
+        this.labelSpecifics = (labelSpecifics != null) ? labelSpecifics : new LabelSpecifics[0];
     }
     
     public String getExportedPaths() {
@@ -82,10 +85,15 @@ public class CustomTool extends ToolInstallation implements
         correctedHome = pathList.getHomeDir(); 
     }
 
+    public LabelSpecifics[] getLabelSpecifics() {
+        return labelSpecifics;
+    }
+         
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
-                getProperties().toList(), environment.expand(exportedPaths));
+                getProperties().toList(), environment.expand(exportedPaths),
+                LabelSpecifics.substitute(labelSpecifics, environment));
     }
 
     @Override
@@ -93,13 +101,14 @@ public class CustomTool extends ToolInstallation implements
             InterruptedException {       
         String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
         String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
-                
-        return new CustomTool(getName(), substitutedHomeDir,
-                getProperties().toList(), substitutedPath);
+        
+        return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), 
+                substitutedPath, LabelSpecifics.substitute(labelSpecifics, node));
     }
     
+    //FIXME: just a stub
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths());
+        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), labelSpecifics);
     }
     
     /**
