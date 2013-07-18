@@ -27,44 +27,57 @@ import java.util.List;
  */
 public class PathsList implements Serializable {
     public List<String> paths;
+    /*Restored home dir*/
+    public String homeDir;
     public String pathSeparator;
     public String separator;
     
-    public static final PathsList EMPTY = new PathsList(new String[0]);
+    public static final PathsList EMPTY = new PathsList(new String[0], null);
 
     /**
      * Constructor. Sets system's default separator and pathSeparator
      * @param paths List of paths to be returned
      */
-    public PathsList(String[] paths) {
-        this(paths, File.pathSeparator, File.separator);
+    public PathsList(String[] paths, String homeDir) {
+        this(paths, File.pathSeparator, File.separator, homeDir);
     }
 
     /**
      * Empty constructor. doesn't set pathSeparator and separator
      */
     public PathsList() {
-        this.paths = new ArrayList<String>();
-        this.pathSeparator = null;
-        this.separator = null;
+        this(new String[0], null, null, null);
     }
     
-    public PathsList(String[] paths, String pathSeparator, String separator) {
+    public PathsList(String[] paths, String pathSeparator, String separator, String homeDir) {
         this.paths = new ArrayList<String>(Arrays.asList(paths));
         this.pathSeparator = pathSeparator;
         this.separator = separator;
+        this.homeDir = homeDir;
     }
-    
+
+    public String getHomeDir() {
+        return homeDir;
+    }
+     
     public boolean add(String path) {
         return paths.add(path);
     }
     
+    /**
+     * Adds PathsList and overrides null variables.
+     * @param pathsList PathsList to be added
+     * @return True if 
+     */
     public boolean add(PathsList pathsList) {
         if (pathSeparator == null) {
             pathSeparator = pathsList.pathSeparator;
         }
         if (separator == null) {
             separator = pathsList.separator;
+        }
+        if (homeDir == null) {
+            homeDir = pathsList.homeDir;
         }
         return this.paths.addAll(pathsList.paths);
     }

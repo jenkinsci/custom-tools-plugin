@@ -58,6 +58,8 @@ public class CustomTool extends ToolInstallation implements
      */
     private final String exportedPaths;
 
+    private transient String correctedHome;
+    
     @DataBoundConstructor
     public CustomTool(String name, String home, List properties,
             String exportedPaths) {
@@ -68,8 +70,15 @@ public class CustomTool extends ToolInstallation implements
     public String getExportedPaths() {
         return exportedPaths;
     }
+
+    @Override
+    public String getHome() {
+        return (correctedHome != null) ? correctedHome : super.getHome(); 
+    }
         
-    
+    public void correctHome(PathsList pathList) {
+        correctedHome = pathList.getHomeDir(); 
+    }
 
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
@@ -159,6 +168,10 @@ public class CustomTool extends ToolInstallation implements
                 String[] res = new String[items.length];
                 int i=0;
                 for (String item : items) {
+                    if (item.isEmpty()) {
+                        continue;
+                    } 
+                    
                     File file = new File(item);
                     if (!file.isAbsolute()) {
                         file = new File (getHome(), item);
@@ -171,20 +184,13 @@ public class CustomTool extends ToolInstallation implements
                     res[i]=file.getAbsolutePath();
                     i++;
                 }
-                return new PathsList(res);
                 
-                /**
-                 * Previous implementation:
-                 * FileSet fs = Util.createFileSet(new File(getHome()),exportedPaths);     
-                 * DirectoryScanner ds = fs.getDirectoryScanner();
-                 -- added: ds.scan();
-               */                 
+                // resolve home dir
+                File homeDir = new File(getHome());            
+                return new PathsList(res, homeDir.getAbsolutePath());               
             };
         });
               
-        // be extra greedy in case they added "./. or . or ./"
-        pathsFound.add(getHome());
-        
         return pathsFound;
     }
 
