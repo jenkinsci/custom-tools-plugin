@@ -61,7 +61,7 @@ public class CustomTool extends ToolInstallation implements
      */
     private final String exportedPaths;
     private final LabelSpecifics[] labelSpecifics;
-
+    private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
     private transient String correctedHome;
     
     @DataBoundConstructor
@@ -69,7 +69,7 @@ public class CustomTool extends ToolInstallation implements
             String exportedPaths, LabelSpecifics[] labelSpecifics) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
-        this.labelSpecifics = (labelSpecifics != null) ? labelSpecifics : new LabelSpecifics[0];
+        this.labelSpecifics = labelSpecifics;
     }
     
     public String getExportedPaths() {
@@ -86,14 +86,14 @@ public class CustomTool extends ToolInstallation implements
     }
 
     public LabelSpecifics[] getLabelSpecifics() {
-        return labelSpecifics;
+        return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
     }
          
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
                 getProperties().toList(), environment.expand(exportedPaths),
-                LabelSpecifics.substitute(labelSpecifics, environment));
+                LabelSpecifics.substitute(getLabelSpecifics(), environment));
     }
 
     @Override
@@ -103,12 +103,12 @@ public class CustomTool extends ToolInstallation implements
         String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
         
         return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), 
-                substitutedPath, LabelSpecifics.substitute(labelSpecifics, node));
+                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node));
     }
     
     //FIXME: just a stub
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), labelSpecifics);
+        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), getLabelSpecifics());
     }
     
     /**

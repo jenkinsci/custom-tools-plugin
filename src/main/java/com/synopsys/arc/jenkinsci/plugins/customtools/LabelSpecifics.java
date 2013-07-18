@@ -16,6 +16,7 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools;
 
 import hudson.EnvVars;
+import hudson.Util;
 import hudson.model.Label;
 import hudson.model.Node;
 import jenkins.model.Jenkins;
@@ -32,7 +33,7 @@ public class LabelSpecifics {
 
     @DataBoundConstructor
     public LabelSpecifics(String label, String additionalVars) {
-        this.label = label;
+        this.label = Util.fixEmptyAndTrim(label);
         this.additionalVars = additionalVars;
     }
     
@@ -54,6 +55,11 @@ public class LabelSpecifics {
      * @return True if specifics is applicable to node
      */
     public boolean appliesTo(Node node) {
+        String correctedLabel = Util.fixEmptyAndTrim(label);
+        if (correctedLabel == null) {
+            return true;
+        }
+        
         Label l = Jenkins.getInstance().getLabel(label);
         return l == null || l.contains(node);
     }
