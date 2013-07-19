@@ -73,7 +73,7 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         
         CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
-                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT);
+                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT, false);
         project.getBuildWrappersList().add(wrapper);
         Builder b = new Shell("echo $PATH; mytrue");
         project.getBuildersList().add(b);

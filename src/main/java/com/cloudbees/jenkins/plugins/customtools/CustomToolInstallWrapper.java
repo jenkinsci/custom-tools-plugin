@@ -82,13 +82,19 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     
     private SelectedTool[] selectedTools = new SelectedTool[0];
     private MulticonfigWrapperOptions multiconfigOptions;    
+    private boolean convertHomesToUppercase;
     
     @DataBoundConstructor
-    public CustomToolInstallWrapper(SelectedTool[] selectedTools, MulticonfigWrapperOptions multiconfigOptions) {
+    public CustomToolInstallWrapper(SelectedTool[] selectedTools, MulticonfigWrapperOptions multiconfigOptions, boolean convertHomesToUppercase) {
         this.selectedTools = (selectedTools != null) ? selectedTools : new SelectedTool[0];
         this.multiconfigOptions = (multiconfigOptions != null) ? multiconfigOptions : MulticonfigWrapperOptions.DEFAULT;
+        this.convertHomesToUppercase = convertHomesToUppercase;
     }
-       
+
+    public boolean isConvertHomesToUppercase() {
+        return convertHomesToUppercase;
+    }
+          
     @Override
     public Environment setUp(AbstractBuild build, Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException {
@@ -160,15 +166,17 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 if (!spec.appliesTo(node)) {
                     continue;
                 }
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
+                CustomToolsLogger.LogMessage(listener, installed.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
                                
                 if (spec.hasAdditionalVars()) {
                     additionalVarInjectors.add(EnvVariablesInjector.Create(spec.getAdditionalVars()));
                 }
             }
             
-            CustomToolsLogger.LogMessage(listener, installed.getName()+" is installed at "+ installed.getHome());
-            homes.put(installed.getName()+"_HOME", installed.getHome());
+            CustomToolsLogger.LogMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
+            String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase() : installed.getName()) +"_HOME";
+            CustomToolsLogger.LogMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
+            homes.put(homeDirVarName, installed.getHome());
         }
 
 
