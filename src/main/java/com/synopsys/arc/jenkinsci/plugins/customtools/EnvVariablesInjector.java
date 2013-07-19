@@ -106,12 +106,9 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         */
         public void Inject(EnvVars target) throws IOException {
             //TODO: check overrides
-            //TODO: check lists
-            String val = target.get(envName);
-            
+            //TODO: check lists 
             //TODO: substitute, check, etc.
-            val = envValue;
-            target.put(envName, val);
+            target.put(envName, envValue);
         }
     }
     

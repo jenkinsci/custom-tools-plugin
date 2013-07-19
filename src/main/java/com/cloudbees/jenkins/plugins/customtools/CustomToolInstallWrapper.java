@@ -16,6 +16,7 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
+import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolsLogger;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
@@ -127,8 +128,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
         
         // Handle multi-configuration build
-        if (MatrixBuild.class.isAssignableFrom(build.getClass())) {
-            listener.getLogger().println("[CustomTools] - Skipping installation of tools at the master job");
+        if (MatrixBuild.class.isAssignableFrom(build.getClass())) {  
+            CustomToolsLogger.LogMessage(listener, "Skipping installation of tools at the master job");
             if (multiconfigOptions.isSkipMasterInstallation()) {
                 return launcher;
             }
@@ -136,6 +137,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         
         //each tool can export zero or many directories to the PATH
         for (CustomTool tool : customTools()) {
+            CustomToolsLogger.LogMessage(listener, tool.getName(), "Starting installation");
             //this installs the tool if necessary
             CustomTool installed = tool
                     .forNode(Computer.currentComputer().getNode(), listener)
@@ -154,17 +156,18 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             installed.correctHome(installedPaths);
             paths.add(installedPaths);
 
-            for (LabelSpecifics spec : installed.getLabelSpecifics()) {
+            for (LabelSpecifics spec : installed.getLabelSpecifics()) {              
                 if (!spec.appliesTo(node)) {
                     continue;
                 }
+                CustomToolsLogger.LogMessage(listener, tool.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
                                
                 if (spec.hasAdditionalVars()) {
                     additionalVarInjectors.add(EnvVariablesInjector.Create(spec.getAdditionalVars()));
                 }
             }
             
-            listener.getLogger().println("[CustomTools] - "+installed.getName()+" is installed at "+ installed.getHome());
+            CustomToolsLogger.LogMessage(listener, installed.getName()+" is installed at "+ installed.getHome());
             homes.put(installed.getName()+"_HOME", installed.getHome());
         }
 
