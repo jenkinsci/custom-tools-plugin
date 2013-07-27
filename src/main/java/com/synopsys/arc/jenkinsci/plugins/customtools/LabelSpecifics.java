@@ -16,7 +16,11 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools;
 
 import hudson.EnvVars;
+import hudson.Extension;
 import hudson.Util;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Describable;
+import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
 import java.io.Serializable;
@@ -28,14 +32,16 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  * @since 0.3
  */
-public class LabelSpecifics implements Serializable {
+public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> implements Serializable {
     private String label;
     private String additionalVars;
-
+    private String exportedPaths;
+    
     @DataBoundConstructor
-    public LabelSpecifics(String label, String additionalVars) {
+    public LabelSpecifics(String label, String additionalVars, String exportedPaths) {
         this.label = Util.fixEmptyAndTrim(label);
         this.additionalVars = additionalVars;
+        this.exportedPaths = exportedPaths;
     }
     
     public String getAdditionalVars() {
@@ -48,6 +54,10 @@ public class LabelSpecifics implements Serializable {
 
     public String getLabel() {
         return label;
+    }
+
+    public String getExportedPaths() {
+        return exportedPaths;
     }
     
     /**
@@ -66,11 +76,13 @@ public class LabelSpecifics implements Serializable {
     }
     
     public LabelSpecifics substitute(EnvVars vars) {
-        return new LabelSpecifics(label, vars.expand(additionalVars));
+        return new LabelSpecifics(label, vars.expand(additionalVars), vars.expand(exportedPaths));
     }
     
     public LabelSpecifics substitute(Node node) {
-        return new LabelSpecifics(label, EnvStringParseHelper.resolveExportedPath(additionalVars, node));
+        return new LabelSpecifics(label, 
+                EnvStringParseHelper.resolveExportedPath(additionalVars, node), 
+                EnvStringParseHelper.resolveExportedPath(exportedPaths, node));
     }
     
     public static LabelSpecifics[] substitute (LabelSpecifics[] specifics, EnvVars vars) {
@@ -88,5 +100,12 @@ public class LabelSpecifics implements Serializable {
         }
         return out;
     }
-            
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<LabelSpecifics> {
+        @Override
+        public String getDisplayName() {
+            return Messages.LabelSpecifics_DisplayName();
+        }
+    }  
 }
