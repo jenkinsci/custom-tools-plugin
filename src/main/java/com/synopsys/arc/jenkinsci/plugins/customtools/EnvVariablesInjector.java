@@ -112,6 +112,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
             //Substitute current envValue
             String replacedValue = target.containsKey(envName) ? target.get(envName) : "";        
             String newEnvValue=envValue.replace("${"+envName+"}", replacedValue);                       
+            
             target.put(envName, newEnvValue);
         }
     }
