@@ -40,11 +40,14 @@ THE SOFTWARE.
     <f:description>Variables with macro support. *.prop file format</f:description>
   </f:entry>
   <f:entry title="${%Label-specific options}">
-        <f:repeatable name="labelSpecifics" header="${%Label specific}" add="${%Add label}" var="labelSpecific" field="labelSpecifics">                                    
-            <table width="100%">
+        <f:repeatableProperty name="labelSpecifics" header="${%Label specific}" add="${%Add label}" var="labelSpecific" field="labelSpecifics">                                    
+         <!--   <table width="100%">
             <f:entry title="${%Label}" field="label">
                 <f:textbox/>  
             </f:entry>
+            <f:entry title="${%Exported paths}" field="exportedPaths">
+                <f:textbox/>
+            </f:entry>        
             <f:entry title="${%Additional variables}" field="additionalVars">
                 <f:textarea/>  
             </f:entry>          
@@ -53,7 +56,7 @@ THE SOFTWARE.
                     <f:repeatableDeleteButton value="Remove..."/> 
                 </div>
             </f:entry>
-            </table>        
-        </f:repeatable>
+            </table>    -->    
+        </f:repeatableProperty>
     </f:entry> 
  </j:jelly>

@@ -118,6 +118,22 @@ public class CustomTool extends ToolInstallation implements
         EnvStringParseHelper.checkStringForMacro("EXPORTED_PATHS", getExportedPaths());
         EnvStringParseHelper.checkStringForMacro("HOME_DIR", getHome());
     }
+    
+    /**
+     * Get list of label specifics, which apply to the specified node.
+     * @param node Node to be checked
+     * @return List of the specifics to be applied
+     * @since 0.3
+     */
+    public List<LabelSpecifics> getAppliedSpecifics(Node node) {
+        List<LabelSpecifics> out = new LinkedList<LabelSpecifics>();
+        for (LabelSpecifics spec : labelSpecifics) {
+            if (spec.appliesTo(node)) {
+                out.add(spec);
+            }
+        }
+        return out;
+    }
 
     @Extension
     public static class DescriptorImpl extends ToolDescriptor<CustomTool> {
@@ -166,21 +182,38 @@ public class CustomTool extends ToolInstallation implements
     protected PathsList getPaths(Node node) throws IOException, InterruptedException {
 
         FilePath homePath = new FilePath(node.getChannel(), getHome());
+        //FIXME: Why?
         if (exportedPaths == null) {
             return PathsList.EMPTY;
-        }
-
-        PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {
-
-            public PathsList invoke(File f, VirtualChannel channel)
-                    throws IOException, InterruptedException {           
-                String[] items = exportedPaths.split("\\s*,\\s*");
-                List<String> outList = new LinkedList<String>();
+        }       
+        final List<LabelSpecifics> specs = getAppliedSpecifics(node);
+        
+        PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {          
+            
+            private void parseLists(String pathList, List<String> target) {
+                String[] items = pathList.split("\\s*,\\s*");              
                 for (String item : items) {
                     if (item.isEmpty()) {
                         continue;
-                    } 
-                    
+                    }
+                    target.add(item);
+                }
+            }
+            
+            @Override
+            public PathsList invoke(File f, VirtualChannel channel)
+                    throws IOException, InterruptedException {           
+                
+                // Construct output paths
+                List<String> items = new LinkedList<String>();
+                parseLists(exportedPaths, items);
+                for (LabelSpecifics spec : specs) {
+                   parseLists(spec.getExportedPaths(), items);
+                }
+                             
+                // Resolve exported paths
+                List<String> outList = new LinkedList<String>();
+                for (String item : items) {    
                     File file = new File(item);
                     if (!file.isAbsolute()) {
                         file = new File (getHome(), item);
@@ -193,7 +226,7 @@ public class CustomTool extends ToolInstallation implements
                     outList.add(file.getAbsolutePath());
                 }
                 
-                // resolve home dir
+                // Resolve home dir
                 File homeDir = new File(getHome());   
                 return new PathsList(outList, homeDir.getAbsolutePath());               
             };
