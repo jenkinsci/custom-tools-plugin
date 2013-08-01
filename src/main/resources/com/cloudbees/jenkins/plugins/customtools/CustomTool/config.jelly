@@ -36,7 +36,7 @@ THE SOFTWARE.
     <f:textbox/>
   </f:entry>
   <f:entry title="${%Exported variables}" field="additionalVariables">
-    <f:textbox/>
+    <f:textarea/>
     <f:description>Variables with macro support. *.prop file format</f:description>
   </f:entry>
   <f:entry title="${%Label-specific options}">
