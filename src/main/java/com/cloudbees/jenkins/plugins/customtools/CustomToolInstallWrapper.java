@@ -16,6 +16,7 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
+import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolsLogger;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
@@ -141,10 +142,19 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             }
         }
         
-        //each tool can export zero or many directories to the PATH
+        // Each tool can export zero or many directories to the PATH
         for (CustomTool tool : customTools()) {
             CustomToolsLogger.LogMessage(listener, tool.getName(), "Starting installation");
-            //this installs the tool if necessary
+            
+            // Check version
+            if (tool.hasVersions()) {
+                ExtendedChoiceParameterDefinition def = tool.getToolVersion().getVersionsListSource();
+                CustomToolsLogger.LogMessage(listener, tool.getName(), "Tool has versions. Default version is "+def.getName()+"="+def.getEffectiveDefaultValue());
+                //TODO: add check of the predefined versions
+                //FIXME: override by default version
+            }
+            
+            // This installs the tool if necessary
             CustomTool installed = tool
                     .forNode(Computer.currentComputer().getNode(), listener)
                     .forEnvironment(buildEnv)
