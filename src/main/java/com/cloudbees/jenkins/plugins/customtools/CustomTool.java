@@ -20,6 +20,7 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
+import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -62,19 +63,29 @@ public class CustomTool extends ToolInstallation implements
     private final LabelSpecifics[] labelSpecifics;
     private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
     private transient String correctedHome;
+    private final ToolVersionConfig toolVersion;
     
     @DataBoundConstructor
     public CustomTool(String name, String home, List properties,
-            String exportedPaths, LabelSpecifics[] labelSpecifics) {
+            String exportedPaths, LabelSpecifics[] labelSpecifics, ToolVersionConfig toolVersion) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
         this.labelSpecifics = labelSpecifics;
+        this.toolVersion = toolVersion;
     }
     
     public String getExportedPaths() {
         return exportedPaths;
     }
 
+    public ToolVersionConfig getToolVersion() {
+        return toolVersion;
+    }
+    
+    public boolean hasVersions() {
+        return toolVersion != null;
+    }
+    
     @Override
     public String getHome() {
         return (correctedHome != null) ? correctedHome : super.getHome(); 
@@ -92,7 +103,7 @@ public class CustomTool extends ToolInstallation implements
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
                 getProperties().toList(), environment.expand(exportedPaths),
-                LabelSpecifics.substitute(getLabelSpecifics(), environment));
+                LabelSpecifics.substitute(getLabelSpecifics(), environment), toolVersion);
     }
 
     @Override
@@ -102,12 +113,12 @@ public class CustomTool extends ToolInstallation implements
         String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
         
         return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), 
-                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node));
+                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node), toolVersion);
     }
     
     //FIXME: just a stub
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), getLabelSpecifics());
+        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), getLabelSpecifics(), toolVersion);
     }
     
     /**

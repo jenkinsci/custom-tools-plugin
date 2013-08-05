@@ -39,10 +39,9 @@ import java.util.concurrent.Future;
 
 import org.jvnet.hudson.test.HudsonTestCase;
 
-import com.cloudbees.jenkins.plugins.customtools.CustomTool;
-import com.cloudbees.jenkins.plugins.customtools.CustomToolInstallWrapper;
 import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
+import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 
 
 public class CustomToolInstallerTest extends HudsonTestCase {
@@ -81,9 +80,7 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         assertBuildStatusSuccess(build);
         
     }
-
-        
-        
+       
     private CustomTool createTool(String name) throws IOException {
         List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue",
@@ -92,7 +89,7 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null);
+        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT);
         return installation;
     }
     
