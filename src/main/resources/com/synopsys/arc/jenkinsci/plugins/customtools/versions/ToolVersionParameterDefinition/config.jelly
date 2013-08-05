@@ -6,7 +6,7 @@
                         method="getAllVersionedTools"/>
         <select class="setting-input" name="toolName">
             <j:forEach var="installation" items="${possibleTools}">
-              <f:option selected="${installation.name==toolName}" 
+              <f:option selected="${installation.name==instance.toolName}" 
                         value="${installation.name}">
                             ${installation.name} (${installation.toolVersion.versionsListSource.name})
               </f:option>
