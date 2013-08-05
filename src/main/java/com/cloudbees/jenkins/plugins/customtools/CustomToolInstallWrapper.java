@@ -131,7 +131,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             RunnerAbortedException {
 
         EnvVars buildEnv = build.getEnvironment(listener); 
-        final EnvVars homes = new EnvVars();
+        final EnvVars homesAndVersions = new EnvVars();
         final PathsList paths = new PathsList();
         final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
         
@@ -148,31 +148,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         for (CustomTool tool : customTools()) {
             CustomToolsLogger.LogMessage(listener, tool.getName(), "Starting installation");
             
-            // Check version
-            if (tool.hasVersions()) {
-                ExtendedChoiceParameterDefinition def = tool.getToolVersion().getVersionsListSource();
-                String defaultVersion = hudson.Util.fixEmptyAndTrim(def.getEffectiveDefaultValue());
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "Tool has versions. Default version is "+def.getName()+"="+defaultVersion);
-                
-                // Check if node has version specified
-                String subst = "${"+def.getName()+"}";
-                String res = EnvStringParseHelper.resolveExportedPath(subst, node);
-                if (!subst.equals(res)) {
-                    CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+res+" has been specified by node or global variables");
-                } else if (buildEnv.containsKey(def.getName())) {
-                    String envVersion = buildEnv.get(def.getName());
-                    CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+envVersion+" has been specified by the build environment");    
-                } else if (defaultVersion != null){
-                    CustomToolsLogger.LogMessage(listener, tool.getName(), "No version has been specified. Using default version");
-                    buildEnv.addLine(def.getName()+"="+defaultVersion);
-                } else {
-                    CustomToolsLogger.LogMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
-                    throw new CustomToolException("Version has not been specified for the "+tool.getName());
-                }
-                
-                //TODO: add check of the predefined versions
-                //FIXME: override by default version
-            }
+            // Check versioning
+            CheckVersions(tool, listener, buildEnv, node, homesAndVersions);
             
             // This installs the tool if necessary
             CustomTool installed = tool
@@ -186,8 +163,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 throw new AbortException(ex.getMessage());
             }
             
-            // Prepare additional variables
-            
+            // Prepare additional variables       
             PathsList installedPaths = installed.getPaths(node);          
             installed.correctHome(installedPaths);
             paths.add(installedPaths);
@@ -206,9 +182,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             CustomToolsLogger.LogMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
             String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase() : installed.getName()) +"_HOME";
             CustomToolsLogger.LogMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
-            homes.put(homeDirVarName, installed.getHome());
+            homesAndVersions.put(homeDirVarName, installed.getHome());
         }
-
 
         return new DecoratedLauncher(launcher) {            
             @Override
@@ -219,7 +194,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 String overridenPaths = vars.get("PATH");
                 overridenPaths += paths.toListString();
                 vars.override("PATH", overridenPaths);
-                vars.putAll(homes);
+                vars.putAll(homesAndVersions);
                 
                 // Inject additional variables
                 for (EnvVariablesInjector injector : additionalVarInjectors) {
@@ -237,6 +212,42 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 return vars;
             }
         };
+    }
+    
+    /**
+     * Check versions and modify build environment if required.
+     * @param tool Custom Tool
+     * @param listener Build Listener
+     * @param buildEnv Build Environment (can be modified)
+     * @param node Target Node
+     * @param target Build Internal Environment (can be modified)
+     * @throws CustomToolException 
+     * @since 0.4
+     */
+    public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) throws CustomToolException {
+        // Check version
+        if (tool.hasVersions()) {
+            ExtendedChoiceParameterDefinition def = tool.getToolVersion().getVersionsListSource();
+            String defaultVersion = hudson.Util.fixEmptyAndTrim(def.getEffectiveDefaultValue());
+            CustomToolsLogger.LogMessage(listener, tool.getName(), "Tool has versions. Default version is "+def.getName()+"="+defaultVersion);
+
+            // Check if node has version specified
+            String subst = "${"+def.getName()+"}";
+            String res = EnvStringParseHelper.resolveExportedPath(subst, node);
+            if (!subst.equals(res)) {
+                CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+res+" has been specified by node or global variables");
+            } else if (buildEnv.containsKey(def.getName())) {
+                String envVersion = buildEnv.get(def.getName());
+                CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+envVersion+" has been specified by the build environment");    
+            } else if (defaultVersion != null){
+                CustomToolsLogger.LogMessage(listener, tool.getName(), "No version has been specified. Using default version");
+                target.addLine(def.getName()+"="+defaultVersion);
+                buildEnv.addLine(def.getName()+"="+defaultVersion);
+            } else {
+                CustomToolsLogger.LogMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
+                throw new CustomToolException("Version has not been specified for the "+tool.getName());
+            }
+        }
     }
     
     @Override
