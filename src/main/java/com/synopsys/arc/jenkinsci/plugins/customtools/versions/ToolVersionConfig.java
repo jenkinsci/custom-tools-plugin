@@ -31,6 +31,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public class ToolVersionConfig extends AbstractDescribableImpl<ToolVersionConfig> 
     implements Serializable 
 {
+    public static final ToolVersionConfig DEFAULT = null;
     ExtendedChoiceParameterDefinition versionsListSource;
 
     @DataBoundConstructor
