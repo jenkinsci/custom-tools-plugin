@@ -15,12 +15,14 @@
  */
 package com.synopsys.arc.jenkinsci.plugins.customtools;
 
+import java.io.IOException;
+
 /**
  * Custom tool exception. Should be thrown if error occurs in plugin functions.
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  * @since 0.3
  */
-public class CustomToolException extends Exception {
+public class CustomToolException extends IOException {
     public CustomToolException(String message) {
         super(message);
     }    

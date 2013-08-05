@@ -16,11 +16,11 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools.versions;
 
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
+import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterValue;
 import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterDefinition.ParameterDescriptor;
-import hudson.model.ParameterValue;
 import hudson.model.StringParameterValue;
 import hudson.tools.ToolInstallation;
 import net.sf.json.JSONObject;
@@ -28,8 +28,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
- *
+ * Implements "Tool version" parameter.
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
+ * @since 0.4
  */
 public class ToolVersionParameterDefinition extends ParameterDefinition {
     private String toolName;
@@ -54,18 +55,16 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
         return getTool().getToolVersion();
     }
     
-    
- 
     @Override
     public StringParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        ParameterValue paramVal = getVersionConfig().getVersionsListSource().createValue(req, jo);
-        return new StringParameterValue(paramVal.getName(), paramVal.getDescription());
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)getVersionConfig().getVersionsListSource().createValue(req, jo);
+        return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
 
     @Override
     public StringParameterValue createValue(StaplerRequest req) {       
-        ParameterValue paramVal = getVersionConfig().getVersionsListSource().createValue(req);
-        return new StringParameterValue(paramVal.getName(), paramVal.getDescription());
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)getVersionConfig().getVersionsListSource().createValue(req);
+        return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
     
     @Extension
