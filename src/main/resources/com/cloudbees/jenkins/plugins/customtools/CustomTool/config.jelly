@@ -40,23 +40,13 @@ THE SOFTWARE.
     <f:description>Variables with macro support. *.prop file format</f:description>
   </f:entry>
   <f:entry title="${%Label-specific options}">
-        <f:repeatableProperty name="labelSpecifics" header="${%Label specific}" add="${%Add label}" var="labelSpecific" field="labelSpecifics">                                    
-         <!--   <table width="100%">
-            <f:entry title="${%Label}" field="label">
-                <f:textbox/>  
-            </f:entry>
-            <f:entry title="${%Exported paths}" field="exportedPaths">
-                <f:textbox/>
-            </f:entry>        
-            <f:entry title="${%Additional variables}" field="additionalVars">
-                <f:textarea/>  
-            </f:entry>          
-            <f:entry title="">
-                <div align="right">
-                    <f:repeatableDeleteButton value="Remove..."/> 
-                </div>
-            </f:entry>
-            </table>    -->    
+        <f:repeatableProperty name="labelSpecifics" header="${%Label specific}" add="${%Add label}" var="labelSpecific" field="labelSpecifics">                                      
         </f:repeatableProperty>
-    </f:entry> 
+  </f:entry>       
+    <f:optionalProperty
+              name="versioning" 
+              title="${%Enable Versions}" checked="${instance.hasVersions()}"
+              help="/plugin/custom-tools-plugin/CustomTool/help-versioning.html"
+              field="toolVersion">
+    </f:optionalProperty> 
  </j:jelly>
