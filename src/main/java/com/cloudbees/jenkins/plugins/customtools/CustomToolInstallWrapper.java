@@ -34,6 +34,7 @@ import hudson.matrix.MatrixBuild;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Build;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
@@ -46,6 +47,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.sf.json.JSONObject;
 
@@ -105,7 +107,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             public boolean tearDown(AbstractBuild build, BuildListener listener)
                     throws IOException, InterruptedException {
                 return true;
-            }
+            }  
         };
     }
     
@@ -120,7 +122,20 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         return tools;
     }
-    
+
+    @Override
+    public Environment setUp(Build build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        Map<String, String> envs = new 
+        
+        // Put versions and paths into the environment
+        return new Environment() {
+            @Override
+            public void buildEnvVars(Map<String, String> env) {
+                super.buildEnvVars(env);
+            }
+        }
+    }
+       
     /**
      * The heart of the beast. Installs selected tools and exports their paths to the 
      * PATH and their HOMEs as environment variables.
@@ -131,7 +146,9 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             RunnerAbortedException {
 
         EnvVars buildEnv = build.getEnvironment(listener); 
-        final EnvVars homesAndVersions = new EnvVars();
+        final EnvVars homes = new EnvVars();
+        final EnvVars versions = new EnvVars();
+        
         final PathsList paths = new PathsList();
         final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
         
@@ -149,7 +166,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             CustomToolsLogger.LogMessage(listener, tool.getName(), "Starting installation");
             
             // Check versioning
-            CheckVersions(tool, listener, buildEnv, node, homesAndVersions);
+            CheckVersions(tool, listener, buildEnv, node, versions);
             
             // This installs the tool if necessary
             CustomTool installed = tool
@@ -182,10 +199,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             CustomToolsLogger.LogMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
             String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase() : installed.getName()) +"_HOME";
             CustomToolsLogger.LogMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
-            homesAndVersions.put(homeDirVarName, installed.getHome());
+            homes.put(homeDirVarName, installed.getHome());
         }
 
-        return new DecoratedLauncher(launcher) {            
+        return new DecoratedLauncher(launcher) {                    
             @Override
             public Proc launch(ProcStarter starter) throws IOException {
                 EnvVars vars = toEnvVars(starter.envs());
@@ -194,7 +211,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 String overridenPaths = vars.get("PATH");
                 overridenPaths += paths.toListString();
                 vars.override("PATH", overridenPaths);
-                vars.putAll(homesAndVersions);
+                vars.putAll(homes);
+                vars.putAll(versions);
                 
                 // Inject additional variables
                 for (EnvVariablesInjector injector : additionalVarInjectors) {
@@ -203,7 +221,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 
                 return super.launch(starter.envs(Util.mapToEnv(vars)));
             }
-
+            
             private EnvVars toEnvVars(String[] envs) {
                 EnvVars vars = new EnvVars();
                 for (String line : envs) {
