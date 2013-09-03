@@ -24,6 +24,7 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
+import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -34,7 +35,6 @@ import hudson.matrix.MatrixBuild;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Build;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
@@ -99,15 +99,20 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         return convertHomesToUppercase;
     }
           
+    
+    
     @Override
     public Environment setUp(AbstractBuild build, Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException {
-        return new Environment(){
+        
+        
+        return new Environment(){            
+            // TODO: put versions into the environment
+  
             @Override
-            public boolean tearDown(AbstractBuild build, BuildListener listener)
-                    throws IOException, InterruptedException {
-                return true;
-            }  
+            public void buildEnvVars(Map<String, String> env) {
+                super.buildEnvVars(env);
+            }
         };
     }
     
@@ -122,19 +127,6 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         return tools;
     }
-
-    @Override
-    public Environment setUp(Build build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-        Map<String, String> envs = new 
-        
-        // Put versions and paths into the environment
-        return new Environment() {
-            @Override
-            public void buildEnvVars(Map<String, String> env) {
-                super.buildEnvVars(env);
-            }
-        }
-    }
        
     /**
      * The heart of the beast. Installs selected tools and exports their paths to the 
@@ -143,8 +135,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     @Override
     public Launcher decorateLauncher(AbstractBuild build, final Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException,
-            RunnerAbortedException {
-
+            RunnerAbortedException { 
         EnvVars buildEnv = build.getEnvironment(listener); 
         final EnvVars homes = new EnvVars();
         final EnvVars versions = new EnvVars();
@@ -221,7 +212,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 
                 return super.launch(starter.envs(Util.mapToEnv(vars)));
             }
-            
+                        
             private EnvVars toEnvVars(String[] envs) {
                 EnvVars vars = new EnvVars();
                 for (String line : envs) {
@@ -245,28 +236,23 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) throws CustomToolException {
         // Check version
         if (tool.hasVersions()) {
-            ExtendedChoiceParameterDefinition def = tool.getToolVersion().getVersionsListSource();
-            String defaultVersion = hudson.Util.fixEmptyAndTrim(def.getEffectiveDefaultValue());
-            CustomToolsLogger.LogMessage(listener, tool.getName(), "Tool has versions. Default version is "+def.getName()+"="+defaultVersion);
-
-            // Check if node has version specified
-            String subst = "${"+def.getName()+"}";
-            String res = EnvStringParseHelper.resolveExportedPath(subst, node);
-            if (!subst.equals(res)) {
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+res+" has been specified by node or global variables");
-            } else if (buildEnv.containsKey(def.getName())) {
-                String envVersion = buildEnv.get(def.getName());
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+envVersion+" has been specified by the build environment");    
-            } else if (defaultVersion != null){
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "No version has been specified. Using default version");
-                target.addLine(def.getName()+"="+defaultVersion);
-                buildEnv.addLine(def.getName()+"="+defaultVersion);
-            } else {
+            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
+            
+            if (version == null) {
                 CustomToolsLogger.LogMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
                 throw new CustomToolException("Version has not been specified for the "+tool.getName());
             }
-        }
+            
+            CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+version.getActualVersion()+" has been specified by "+version.getVersionSource());
+            if (version.getVersionSource().equals(ToolVersion.DEFAULTS_SOURCE)) {            
+                String envStr = version.getVariableName()+"="+version.getDefaultVersion();
+                target.addLine(envStr);
+                buildEnv.addLine(envStr);
+            }
+        }  
     }
+    
+    
     
     @Override
     public Descriptor<BuildWrapper> getDescriptor() {
