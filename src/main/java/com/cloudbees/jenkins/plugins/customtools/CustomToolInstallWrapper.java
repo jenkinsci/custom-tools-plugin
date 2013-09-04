@@ -112,9 +112,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 for (CustomTool tool : customTools()) {
                     if (tool.hasVersions()) {
                         ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
-                        if (version != null && !buildEnv.containsKey(version.getVariableName())) {           
-                            String envStr = version.getVariableName()+"="+version.getDefaultVersion();
-                            buildEnv.addLine(envStr);
+                        if (version != null && !env.containsKey(version.getVariableName())) {
+                            env.put(version.getVariableName(), version.getDefaultVersion());
                         }
                     }
                 } 
