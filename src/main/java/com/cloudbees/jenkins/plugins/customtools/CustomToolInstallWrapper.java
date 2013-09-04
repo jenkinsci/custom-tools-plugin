@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, CloudBees Inc.
+ * Copyright 2012, CloudBees Inc., Synopsys Inc. and contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolsLogger;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
-import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
+import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -46,6 +45,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import net.sf.json.JSONObject;
 
@@ -56,6 +56,7 @@ import org.kohsuke.stapler.StaplerRequest;
  * Installs tools selected by the user. Exports configured paths and a home variable for each tool.
  * 
  * @author rcampbell
+ * @author Oleg Nenashev
  *
  */
 public class CustomToolInstallWrapper extends BuildWrapper {
@@ -95,16 +96,27 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
     public boolean isConvertHomesToUppercase() {
         return convertHomesToUppercase;
-    }
-          
+    }   
+    
     @Override
     public Environment setUp(AbstractBuild build, Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException {
-        return new Environment(){
+        
+        final EnvVars buildEnv = build.getEnvironment(listener);
+        final Node node = build.getBuiltOn();
+        
+        return new Environment(){            
             @Override
-            public boolean tearDown(AbstractBuild build, BuildListener listener)
-                    throws IOException, InterruptedException {
-                return true;
+            public void buildEnvVars(Map<String, String> env) {          
+                // TODO: Inject Home dirs as well
+                for (CustomTool tool : customTools()) {
+                    if (tool.hasVersions()) {
+                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+                        if (version != null && !env.containsKey(version.getVariableName())) {
+                            env.put(version.getVariableName(), version.getDefaultVersion());
+                        }
+                    }
+                } 
             }
         };
     }
@@ -120,7 +132,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         return tools;
     }
-    
+       
     /**
      * The heart of the beast. Installs selected tools and exports their paths to the 
      * PATH and their HOMEs as environment variables.
@@ -128,10 +140,11 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     @Override
     public Launcher decorateLauncher(AbstractBuild build, final Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException,
-            RunnerAbortedException {
-
+            RunnerAbortedException { 
         EnvVars buildEnv = build.getEnvironment(listener); 
-        final EnvVars homesAndVersions = new EnvVars();
+        final EnvVars homes = new EnvVars();
+        final EnvVars versions = new EnvVars();
+        
         final PathsList paths = new PathsList();
         final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
         
@@ -149,7 +162,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             CustomToolsLogger.LogMessage(listener, tool.getName(), "Starting installation");
             
             // Check versioning
-            CheckVersions(tool, listener, buildEnv, node, homesAndVersions);
+            CheckVersions(tool, listener, buildEnv, node, versions);
             
             // This installs the tool if necessary
             CustomTool installed = tool
@@ -182,10 +195,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             CustomToolsLogger.LogMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
             String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase() : installed.getName()) +"_HOME";
             CustomToolsLogger.LogMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
-            homesAndVersions.put(homeDirVarName, installed.getHome());
+            homes.put(homeDirVarName, installed.getHome());
         }
 
-        return new DecoratedLauncher(launcher) {            
+        return new DecoratedLauncher(launcher) {                    
             @Override
             public Proc launch(ProcStarter starter) throws IOException {
                 EnvVars vars = toEnvVars(starter.envs());
@@ -194,7 +207,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 String overridenPaths = vars.get("PATH");
                 overridenPaths += paths.toListString();
                 vars.override("PATH", overridenPaths);
-                vars.putAll(homesAndVersions);
+                vars.putAll(homes);
+                vars.putAll(versions);
                 
                 // Inject additional variables
                 for (EnvVariablesInjector injector : additionalVarInjectors) {
@@ -203,7 +217,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 
                 return super.launch(starter.envs(Util.mapToEnv(vars)));
             }
-
+                        
             private EnvVars toEnvVars(String[] envs) {
                 EnvVars vars = new EnvVars();
                 for (String line : envs) {
@@ -227,28 +241,24 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) throws CustomToolException {
         // Check version
         if (tool.hasVersions()) {
-            ExtendedChoiceParameterDefinition def = tool.getToolVersion().getVersionsListSource();
-            String defaultVersion = hudson.Util.fixEmptyAndTrim(def.getEffectiveDefaultValue());
-            CustomToolsLogger.LogMessage(listener, tool.getName(), "Tool has versions. Default version is "+def.getName()+"="+defaultVersion);
-
-            // Check if node has version specified
-            String subst = "${"+def.getName()+"}";
-            String res = EnvStringParseHelper.resolveExportedPath(subst, node);
-            if (!subst.equals(res)) {
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+res+" has been specified by node or global variables");
-            } else if (buildEnv.containsKey(def.getName())) {
-                String envVersion = buildEnv.get(def.getName());
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+envVersion+" has been specified by the build environment");    
-            } else if (defaultVersion != null){
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "No version has been specified. Using default version");
-                target.addLine(def.getName()+"="+defaultVersion);
-                buildEnv.addLine(def.getName()+"="+defaultVersion);
-            } else {
+            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+            if (version == null) {
                 CustomToolsLogger.LogMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
                 throw new CustomToolException("Version has not been specified for the "+tool.getName());
             }
-        }
+            
+            CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+version.getActualVersion()+" has been specified by "+version.getVersionSource());
+            
+            // Override default versions
+            if (version.getVersionSource().equals(ToolVersion.DEFAULTS_SOURCE)) {            
+                String envStr = version.getVariableName()+"="+version.getDefaultVersion();
+                target.addLine(envStr);
+                buildEnv.addLine(envStr);
+            }
+        }  
     }
+    
+    
     
     @Override
     public Descriptor<BuildWrapper> getDescriptor() {

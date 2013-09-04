@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, CloudBees Inc.
+ * Copyright 2012, CloudBees Inc., Synopsys Inc. and contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import java.util.Map;
  * override.
  * 
  * @author rcampbell
- *
+ * @author Oleg Nenashev
  */
 public class DecoratedLauncher extends Launcher {
     private Launcher inner = null;
