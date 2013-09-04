@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, CloudBees Inc.
+ * Copyright 2012, CloudBees Inc. and contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolsLogger;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
-import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
@@ -58,6 +56,7 @@ import org.kohsuke.stapler.StaplerRequest;
  * Installs tools selected by the user. Exports configured paths and a home variable for each tool.
  * 
  * @author rcampbell
+ * @author Oleg Nenashev
  *
  */
 public class CustomToolInstallWrapper extends BuildWrapper {
@@ -97,21 +96,28 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
     public boolean isConvertHomesToUppercase() {
         return convertHomesToUppercase;
-    }
-          
-    
+    }   
     
     @Override
     public Environment setUp(AbstractBuild build, Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException {
         
+        final EnvVars buildEnv = build.getEnvironment(listener);
+        final Node node = build.getBuiltOn();
         
         return new Environment(){            
-            // TODO: put versions into the environment
-  
             @Override
-            public void buildEnvVars(Map<String, String> env) {
-                super.buildEnvVars(env);
+            public void buildEnvVars(Map<String, String> env) {          
+                // TODO: Inject Home dirs as well
+                for (CustomTool tool : customTools()) {
+                    if (tool.hasVersions()) {
+                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+                        if (version != null && !buildEnv.containsKey(version.getVariableName())) {           
+                            String envStr = version.getVariableName()+"="+version.getDefaultVersion();
+                            buildEnv.addLine(envStr);
+                        }
+                    }
+                } 
             }
         };
     }
@@ -236,14 +242,15 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) throws CustomToolException {
         // Check version
         if (tool.hasVersions()) {
-            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
-            
+            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
             if (version == null) {
                 CustomToolsLogger.LogMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
                 throw new CustomToolException("Version has not been specified for the "+tool.getName());
             }
             
             CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+version.getActualVersion()+" has been specified by "+version.getVersionSource());
+            
+            // Override default versions
             if (version.getVersionSource().equals(ToolVersion.DEFAULTS_SOURCE)) {            
                 String envStr = version.getVariableName()+"="+version.getDefaultVersion();
                 target.addLine(envStr);
