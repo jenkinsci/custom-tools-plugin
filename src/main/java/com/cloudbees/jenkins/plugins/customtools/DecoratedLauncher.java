@@ -87,4 +87,8 @@ public class DecoratedLauncher extends Launcher {
     public String toString() {
         return super.toString()+"; decorates "+inner.toString();
     }   
+
+    public Launcher getInner() {
+        return inner;
+    }
 }

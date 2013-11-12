@@ -200,9 +200,14 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
         return new DecoratedLauncher(launcher) {                    
             @Override
-            public Proc launch(ProcStarter starter) throws IOException {
-                EnvVars vars = toEnvVars(starter.envs());
-                
+            public Proc launch(ProcStarter starter) throws IOException {           
+                EnvVars vars;
+                try { // Dirty hack, which allows to avoid NPEs in Launcher::envs()
+                    vars = toEnvVars(starter.envs());
+                } catch (NullPointerException npe) {
+                    vars = new EnvVars();
+                }
+                 
                 // HACK: Avoids issue with invalid separators in EnvVars::override in case of different master/slave
                 String overridenPaths = vars.get("PATH");
                 overridenPaths += paths.toListString();
@@ -215,7 +220,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                     injector.Inject(vars);
                 }
                 
-                return super.launch(starter.envs(Util.mapToEnv(vars)));
+                return getInner().launch(starter.envs(Util.mapToEnv(vars)));
             }
                         
             private EnvVars toEnvVars(String[] envs) {
