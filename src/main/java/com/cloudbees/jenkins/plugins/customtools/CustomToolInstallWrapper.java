@@ -176,11 +176,17 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 throw new AbortException(ex.getMessage());
             }
             
-            // Prepare additional variables       
+            // Handle global options of the tool      
+            //TODO: convert to label specifics?
             PathsList installedPaths = installed.getPaths(node);          
             installed.correctHome(installedPaths);
             paths.add(installedPaths);
+            if (installed.hasAdditionalVariables()) {
+                additionalVarInjectors.add(
+                   EnvVariablesInjector.Create(installed.getAdditionalVariables()));
+            }
 
+            // Handle label-specific options of the tool
             for (LabelSpecifics spec : installed.getLabelSpecifics()) {              
                 if (!spec.appliesTo(node)) {
                     continue;

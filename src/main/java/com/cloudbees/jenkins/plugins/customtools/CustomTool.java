@@ -101,6 +101,11 @@ public class CustomTool extends ToolInstallation implements
         return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
     }
 
+    /**Check if the tool has additional variables set*/
+    public boolean hasAdditionalVariables() {
+        return additionalVariables != null;
+    }
+   
     public String getAdditionalVariables() {
         return additionalVariables;
     }
@@ -127,7 +132,9 @@ public class CustomTool extends ToolInstallation implements
     
     //FIXME: just a stub
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), getLabelSpecifics(), toolVersion);
+        return new CustomTool(getName(), getHome(), getProperties().toList(), 
+                getExportedPaths(), getLabelSpecifics(), 
+                toolVersion, getAdditionalVariables());
     }
     
     /**
