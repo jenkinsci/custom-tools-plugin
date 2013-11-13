@@ -64,14 +64,16 @@ public class CustomTool extends ToolInstallation implements
     private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
     private transient String correctedHome;
     private final ToolVersionConfig toolVersion;
+    private final String additionalVariables;
     
     @DataBoundConstructor
     public CustomTool(String name, String home, List properties,
-            String exportedPaths, LabelSpecifics[] labelSpecifics, ToolVersionConfig toolVersion) {
+            String exportedPaths, LabelSpecifics[] labelSpecifics, ToolVersionConfig toolVersion, String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
         this.labelSpecifics = labelSpecifics;
         this.toolVersion = toolVersion;
+        this.additionalVariables = additionalVariables;
     }
     
     public String getExportedPaths() {
@@ -98,12 +100,22 @@ public class CustomTool extends ToolInstallation implements
     public LabelSpecifics[] getLabelSpecifics() {
         return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
     }
+
+    /**Check if the tool has additional variables set*/
+    public boolean hasAdditionalVariables() {
+        return additionalVariables != null;
+    }
+   
+    public String getAdditionalVariables() {
+        return additionalVariables;
+    }
          
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
         return new CustomTool(getName(), environment.expand(getHome()),
                 getProperties().toList(), environment.expand(exportedPaths),
-                LabelSpecifics.substitute(getLabelSpecifics(), environment), toolVersion);
+                LabelSpecifics.substitute(getLabelSpecifics(), environment), 
+                toolVersion, environment.expand(additionalVariables));
     }
 
     @Override
@@ -111,14 +123,18 @@ public class CustomTool extends ToolInstallation implements
             InterruptedException {       
         String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
         String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
+        String substitutedAdditionalVariables = EnvStringParseHelper.resolveExportedPath(additionalVariables, node);
         
         return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), 
-                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node), toolVersion);
+                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node), 
+                toolVersion, substitutedAdditionalVariables);
     }
     
     //FIXME: just a stub
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), getExportedPaths(), getLabelSpecifics(), toolVersion);
+        return new CustomTool(getName(), getHome(), getProperties().toList(), 
+                getExportedPaths(), getLabelSpecifics(), 
+                toolVersion, getAdditionalVariables());
     }
     
     /**

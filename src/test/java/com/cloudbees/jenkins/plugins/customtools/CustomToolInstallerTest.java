@@ -40,6 +40,7 @@ import java.util.concurrent.Future;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
+import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 
@@ -78,7 +79,26 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         project.getBuildersList().add(b);
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
         assertBuildStatusSuccess(build);
+            
+    }
+    
+    // @Bug(19889). https://issues.jenkins-ci.org/browse/JENKINS-19889
+    //TODO: Just a stub for testing. Make the test automatic
+    public void testAdditionalVars() throws Exception {
+        hudson.setNumExecutors(0);
+        createSlave();
+        tools = hudson.getDescriptorByType(CustomTool.DescriptorImpl.class);
+        tools.setInstallations(createEnvPrinterTool("MyTrue", null, "TEST_ADD_VAR=test"));
+        FreeStyleProject project = createFreeStyleProject();
+        CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         
+        CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
+                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT, false);
+        project.getBuildWrappersList().add(wrapper);
+        Builder b = new Shell("env; mytrue");
+        project.getBuildersList().add(b);
+        Future<FreeStyleBuild> build = project.scheduleBuild2(0);
+        assertBuildStatusSuccess(build);          
     }
        
     private CustomTool createTool(String name) throws IOException {
@@ -89,7 +109,19 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT);
+        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
+        return installation;
+    }
+    
+    //TODO: refactor and generalize
+    private CustomTool createEnvPrinterTool(String name, LabelSpecifics[] specifics, String additionalVars) throws IOException {
+        List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
+        installers.add(new CommandInstaller(null, "ln -s `which true` mytrue", "./"));
+
+        List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
+        properties.add(new InstallSourceProperty(installers));
+
+        CustomTool installation = new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);
         return installation;
     }
     
