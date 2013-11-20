@@ -68,8 +68,9 @@ public class PathsList implements Serializable {
     /**
      * Adds PathsList and overrides null variables.
      * @param pathsList PathsList to be added
-     * @return True if 
+     * @return True if the paths list has been modified after the tool installation
      */
+    //TODO: Is it a bug?
     public boolean add(PathsList pathsList) {
         if (pathSeparator == null) {
             pathSeparator = pathsList.pathSeparator;
@@ -77,6 +78,7 @@ public class PathsList implements Serializable {
         if (separator == null) {
             separator = pathsList.separator;
         }
+        // Add homeDir as well (legacy behavior)
         if (pathsList.homeDir != null) {
             this.paths.add(pathsList.homeDir);
         }
@@ -86,14 +88,10 @@ public class PathsList implements Serializable {
     
     public String toListString() {
         StringBuilder builder = new StringBuilder(paths.size()*2);
-        for ( String path : paths) {
-            builder.append(pathSeparator);
+        for ( String path : paths) {         
             builder.append(path);
-        } 
-        
-        // Add homeDir as well (legacy behavior)
-        builder.append(pathSeparator);
-           
+            builder.append(pathSeparator);
+        }            
         return builder.toString();
     }
 }
