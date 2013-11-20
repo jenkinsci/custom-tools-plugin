@@ -86,8 +86,16 @@ public class PathsList implements Serializable {
         return this.paths.addAll(pathsList.paths);
     }
     
+    /**
+     * Gets the list of installed tools
+     * @return A list with valid delimiters or null if paths is empty
+     */
     public String toListString() {
-        StringBuilder builder = new StringBuilder(paths.size()*2);
+        if (paths.isEmpty()) {
+            return null;
+        }
+        
+        StringBuilder builder = new StringBuilder();
         for ( String path : paths) {         
             builder.append(path);
             builder.append(pathSeparator);

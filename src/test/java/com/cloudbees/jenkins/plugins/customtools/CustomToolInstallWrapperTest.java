@@ -58,6 +58,8 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
         nestedWrapperTestImpl(wrappers, true);
     }
     
+    
+    
     /**
      * Tests custom tools with wrapper, which calls wrapper without
      * specifying of envs.
@@ -68,6 +70,14 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
         List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(2);
         wrappers.add(new CommandCallerInstaller());  
         wrappers.add(setupCustomToolsWrapper());     
+        nestedWrapperTestImpl(wrappers, false);
+    }
+    
+    //@Bug(20560)
+    public void testEmptyToolsList() throws Exception {
+        List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(0); 
+        wrappers.add(new CommandCallerInstaller());
+        wrappers.add(new CustomToolInstallWrapper(null, MulticonfigWrapperOptions.DEFAULT, false));
         nestedWrapperTestImpl(wrappers, false);
     }
     
