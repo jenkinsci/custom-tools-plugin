@@ -214,19 +214,27 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                     vars = new EnvVars();
                 }
                  
-                // HACK: Avoids issue with invalid separators in EnvVars::override in case of different master/slave
-                String overridenPaths = vars.get("PATH");
-                overridenPaths += paths.toListString();
-                vars.override("PATH", overridenPaths);
+                // Inject paths
+                final String injectedPaths = paths.toListString();              
+                if (injectedPaths != null) {              
+                    vars.override("PATH+", injectedPaths);
+                }
+                               
+                // Inject additional variables
                 vars.putAll(homes);
                 vars.putAll(versions);
-                
-                // Inject additional variables
                 for (EnvVariablesInjector injector : additionalVarInjectors) {
                     injector.Inject(vars);
                 }
+                           
+                // Override paths to prevent JENKINS-20560              
+                if (vars.containsKey("PATH")) {
+                    final String overallPaths=vars.get("PATH");
+                    vars.remove("PATH");
+                    vars.put("PATH+", overallPaths);
+                }
                 
-                return getInner().launch(starter.envs(Util.mapToEnv(vars)));
+                return getInner().launch(starter.envs(vars));
             }
                         
             private EnvVars toEnvVars(String[] envs) {
