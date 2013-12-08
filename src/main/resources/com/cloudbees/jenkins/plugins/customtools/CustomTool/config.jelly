@@ -29,24 +29,26 @@ THE SOFTWARE.
   <f:entry title="${%Name}" field="name">
     <f:textbox/>
   </f:entry>
-  <f:entry title="${%Exported paths}" field="exportedPaths">
-    <f:textbox/>
-  </f:entry>
-  <f:entry title="${%Installation directory}" field="home">
-    <f:textbox/>
-  </f:entry>
-  <f:entry title="${%Exported variables}" field="additionalVariables">
-    <f:textarea/>
-    <f:description>Variables with macro support. *.prop file format</f:description>
-  </f:entry>
-  <f:entry title="${%Label-specific options}">
-        <f:repeatableProperty name="labelSpecifics" header="${%Label specific}" add="${%Add label}" var="labelSpecific" field="labelSpecifics">                                      
-        </f:repeatableProperty>
-  </f:entry>       
-    <f:optionalProperty
-              name="versioning" 
-              title="${%Enable Versions}" checked="${instance.hasVersions()}"
-              help="/plugin/custom-tools-plugin/CustomTool/help-versioning.html"
-              field="toolVersion">
-    </f:optionalProperty> 
+  <f:advanced title="${%Custom Tool Configuration}" align="left">
+      <f:entry title="${%Exported paths}" field="exportedPaths">
+          <f:textbox/>
+      </f:entry>
+      <f:entry title="${%Installation directory}" field="home">
+          <f:textbox/>
+      </f:entry>
+      <f:entry title="${%Exported variables}" field="additionalVariables">
+          <f:textarea/>
+          <f:description>Variables with macro support. *.prop file format</f:description>
+      </f:entry>
+      <f:entry title="${%Label-specific options}">
+          <f:repeatableProperty name="labelSpecifics" header="${%Label specific}" add="${%Add label}" var="labelSpecific" field="labelSpecifics">                                      
+          </f:repeatableProperty>
+      </f:entry>       
+      <f:optionalProperty
+          name="versioning" 
+          title="${%Enable Versions}" checked="${instance.hasVersions()}"
+          help="/plugin/custom-tools-plugin/CustomTool/help-versioning.html"
+          field="toolVersion">
+      </f:optionalProperty> 
+  </f:advanced>
  </j:jelly>
