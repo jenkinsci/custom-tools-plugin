@@ -41,11 +41,11 @@ import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 import net.sf.json.JSONObject;
 
@@ -78,10 +78,24 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         public String getName() {
             return name;
         }
+
+        @Override
+        public String toString() {
+            return name;
+        }
         
         @CheckForNull
         public CustomTool toCustomTool() {
             return ((CustomTool.DescriptorImpl)Hudson.getInstance().getDescriptor(CustomTool.class)).byName(name);
+        }
+        
+        @Nonnull
+        public CustomTool toCustomToolValidated() throws CustomToolException {
+            CustomTool tool = toCustomTool();
+            if (tool == null) {
+                throw new CustomToolException("Cannot get the tool "+name);
+            }
+            return tool;
         }
     }
     
@@ -106,14 +120,15 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         
         final EnvVars buildEnv = build.getEnvironment(listener);
         final Node node = build.getBuiltOn();
-        
-        return new Environment(){            
+         
+        return new Environment() {            
             @Override
             public void buildEnvVars(Map<String, String> env) {    
                 
                 // TODO: Inject Home dirs as well
-                for (CustomTool tool : getCustomToolsList()) {
-                    if (tool.hasVersions()) {
+                for (SelectedTool selectedTool : selectedTools) {
+                    CustomTool tool = selectedTool.toCustomTool();
+                    if (tool != null && tool.hasVersions()) {
                         ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
                         if (version != null && !env.containsKey(version.getVariableName())) {
                             env.put(version.getVariableName(), version.getDefaultVersion());
@@ -128,15 +143,6 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         return selectedTools.clone();
     }
     
-    // TODO: Check for null
-    private List<CustomTool> getCustomToolsList() {
-        List<CustomTool> tools = new ArrayList<CustomTool>();
-        for (SelectedTool selected : selectedTools) {
-            tools.add(selected.toCustomTool());
-        }
-        return tools;
-    }
-       
     /**
      * The heart of the beast. Installs selected tools and exports their paths to the 
      * PATH and their HOMEs as environment variables.
@@ -145,7 +151,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     @Override
     public Launcher decorateLauncher(AbstractBuild build, final Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException,
-            RunnerAbortedException { 
+            RunnerAbortedException {
+        
         EnvVars buildEnv = build.getEnvironment(listener); 
         final EnvVars homes = new EnvVars();
         final EnvVars versions = new EnvVars();
@@ -163,7 +170,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         
         // Each tool can export zero or many directories to the PATH
         Node node =  Computer.currentComputer().getNode();
-        for (CustomTool tool : getCustomToolsList()) {
+        for (SelectedTool selectedToolName : selectedTools) {
+            CustomTool tool = selectedToolName.toCustomToolValidated();            
             CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
             
             // Check versioning
