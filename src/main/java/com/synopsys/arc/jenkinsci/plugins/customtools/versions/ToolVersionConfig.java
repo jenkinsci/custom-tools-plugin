@@ -32,7 +32,7 @@ public class ToolVersionConfig extends AbstractDescribableImpl<ToolVersionConfig
     implements Serializable 
 {
     public static final ToolVersionConfig DEFAULT = null;
-    ExtendedChoiceParameterDefinition versionsListSource;
+    private final ExtendedChoiceParameterDefinition versionsListSource;
 
     @DataBoundConstructor
     public ToolVersionConfig(ExtendedChoiceParameterDefinition versionsListSource) {

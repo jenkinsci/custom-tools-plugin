@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 
 import net.sf.json.JSONObject;
 
@@ -73,10 +74,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         public SelectedTool(String name) {
             this.name = name;
         }
+        
         public String getName() {
             return name;
         }
         
+        @CheckForNull
         public CustomTool toCustomTool() {
             return ((CustomTool.DescriptorImpl)Hudson.getInstance().getDescriptor(CustomTool.class)).byName(name);
         }
@@ -106,9 +109,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         
         return new Environment(){            
             @Override
-            public void buildEnvVars(Map<String, String> env) {          
+            public void buildEnvVars(Map<String, String> env) {    
+                
                 // TODO: Inject Home dirs as well
-                for (CustomTool tool : customTools()) {
+                for (CustomTool tool : getCustomToolsList()) {
                     if (tool.hasVersions()) {
                         ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
                         if (version != null && !env.containsKey(version.getVariableName())) {
@@ -124,7 +128,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         return selectedTools.clone();
     }
     
-    private List<CustomTool> customTools() {
+    // TODO: Check for null
+    private List<CustomTool> getCustomToolsList() {
         List<CustomTool> tools = new ArrayList<CustomTool>();
         for (SelectedTool selected : selectedTools) {
             tools.add(selected.toCustomTool());
@@ -158,7 +163,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         
         // Each tool can export zero or many directories to the PATH
         Node node =  Computer.currentComputer().getNode();
-        for (CustomTool tool : customTools()) {
+        for (CustomTool tool : getCustomToolsList()) {
             CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
             
             // Check versioning

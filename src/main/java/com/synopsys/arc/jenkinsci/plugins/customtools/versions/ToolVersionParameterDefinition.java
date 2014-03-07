@@ -16,6 +16,7 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools.versions;
 
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
+import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterValue;
 import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
@@ -23,6 +24,7 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParameterDefinition.ParameterDescriptor;
 import hudson.model.StringParameterValue;
 import hudson.tools.ToolInstallation;
+import javax.annotation.CheckForNull;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -33,7 +35,8 @@ import org.kohsuke.stapler.StaplerRequest;
  * @since 0.4
  */
 public class ToolVersionParameterDefinition extends ParameterDefinition {
-    private String toolName;
+    
+    private final String toolName;
     
     @DataBoundConstructor
     public ToolVersionParameterDefinition(String toolName) {
@@ -46,24 +49,50 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
         return toolName;
     }
     
+    /**
+     * Gets a {@link CustomTool} linked with this Parameter definition.
+     * @return A custom tool or null if it has not been found
+     */
+    @CheckForNull
     public final CustomTool getTool() {
         CustomTool.DescriptorImpl tool = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
         return tool.byName(toolName);
     }
     
+    /**
+     * Gets a Tool Version configuration for the parameter definition.
+     * @return A tool version configuration or null if the tool cannot be found.
+     */
+    @CheckForNull
     public final ToolVersionConfig getVersionConfig() {
-        return getTool().getToolVersion();
+        CustomTool tool = getTool();
+        return tool != null ? tool.getToolVersion() : null;
+    }
+    
+    private ExtendedChoiceParameterDefinition getVersionsListSource() {
+       ToolVersionConfig versionConfig = getVersionConfig();
+        if (versionConfig == null) {
+            throw new IllegalStateException(
+                    Messages.Versions_ToolVersionParameterDefinition_GetVersionConfigError(toolName));
+        } 
+        
+        return versionConfig.getVersionsListSource(); 
     }
     
     @Override
-    public StringParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)getVersionConfig().getVersionsListSource().createValue(req, jo);
+    public StringParameterValue createValue(StaplerRequest req, JSONObject jo)
+            throws IllegalStateException
+    {
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
+                getVersionsListSource().createValue(req, jo);
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
 
     @Override
     public StringParameterValue createValue(StaplerRequest req) {       
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)getVersionConfig().getVersionsListSource().createValue(req);
+        
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
+                getVersionsListSource().createValue(req);
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
     
