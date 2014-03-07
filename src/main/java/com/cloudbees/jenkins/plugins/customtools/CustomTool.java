@@ -62,7 +62,7 @@ public class CustomTool extends ToolInstallation implements
     private final String exportedPaths;
     private final LabelSpecifics[] labelSpecifics;
     private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
-    private transient String correctedHome;
+    private transient String correctedHome = null;
     private final ToolVersionConfig toolVersion;
     private final String additionalVariables;
     
@@ -101,7 +101,10 @@ public class CustomTool extends ToolInstallation implements
         return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
     }
 
-    /**Check if the tool has additional variables set*/
+    /**
+     * Check if the tool has additional environment variables set.
+     * @return true when the tool injects additional environment variables. 
+     */
     public boolean hasAdditionalVariables() {
         return additionalVariables != null;
     }

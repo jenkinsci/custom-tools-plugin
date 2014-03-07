@@ -28,7 +28,6 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.Proc;
-import hudson.Util;
 import hudson.matrix.MatrixBuild;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
@@ -68,7 +67,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      *
      */
     public static class SelectedTool {
-        private String name;
+        private final String name;
         
         @DataBoundConstructor
         public SelectedTool(String name) {
@@ -84,8 +83,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }
     
     private SelectedTool[] selectedTools = new SelectedTool[0];
-    private MulticonfigWrapperOptions multiconfigOptions;    
-    private boolean convertHomesToUppercase;
+    private final MulticonfigWrapperOptions multiconfigOptions;    
+    private final boolean convertHomesToUppercase;
     
     @DataBoundConstructor
     public CustomToolInstallWrapper(SelectedTool[] selectedTools, MulticonfigWrapperOptions multiconfigOptions, boolean convertHomesToUppercase) {
@@ -93,7 +92,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         this.multiconfigOptions = (multiconfigOptions != null) ? multiconfigOptions : MulticonfigWrapperOptions.DEFAULT;
         this.convertHomesToUppercase = convertHomesToUppercase;
     }
-
+    
     public boolean isConvertHomesToUppercase() {
         return convertHomesToUppercase;
     }   
@@ -136,6 +135,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     /**
      * The heart of the beast. Installs selected tools and exports their paths to the 
      * PATH and their HOMEs as environment variables.
+     * @return A decorated launcher
      */
     @Override
     public Launcher decorateLauncher(AbstractBuild build, final Launcher launcher,
@@ -149,8 +149,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
         
         // Handle multi-configuration build
-        if (MatrixBuild.class.isAssignableFrom(build.getClass())) {  
-            CustomToolsLogger.LogMessage(listener, "Skipping installation of tools at the master job");
+        if (build instanceof MatrixBuild) {  
+            CustomToolsLogger.logMessage(listener, "Skipping installation of tools at the master job");
             if (multiconfigOptions.isSkipMasterInstallation()) {
                 return launcher;
             }
@@ -159,10 +159,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         // Each tool can export zero or many directories to the PATH
         Node node =  Computer.currentComputer().getNode();
         for (CustomTool tool : customTools()) {
-            CustomToolsLogger.LogMessage(listener, tool.getName(), "Starting installation");
+            CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
             
             // Check versioning
-            CheckVersions(tool, listener, buildEnv, node, versions);
+            checkVersions(tool, listener, buildEnv, node, versions);
             
             // This installs the tool if necessary
             CustomTool installed = tool
@@ -191,16 +191,16 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 if (!spec.appliesTo(node)) {
                     continue;
                 }
-                CustomToolsLogger.LogMessage(listener, installed.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
+                CustomToolsLogger.logMessage(listener, installed.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
                                
                 if (spec.hasAdditionalVars()) {
                     additionalVarInjectors.add(EnvVariablesInjector.Create(spec.getAdditionalVars()));
                 }
             }
             
-            CustomToolsLogger.LogMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
+            CustomToolsLogger.logMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
             String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase() : installed.getName()) +"_HOME";
-            CustomToolsLogger.LogMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
+            CustomToolsLogger.logMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
             homes.put(homeDirVarName, installed.getHome());
         }
 
@@ -248,7 +248,15 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }
     
     /**
-     * Check versions and modify build environment if required.
+     * @deprecated The method is deprecated. It will be removed in future versions.
+     */
+    public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) 
+            throws CustomToolException  {
+        checkVersions(tool, listener, buildEnv, node, target);
+    }
+    
+    /**
+     * Checks versions and modify build environment if required.
      * @param tool Custom Tool
      * @param listener Build Listener
      * @param buildEnv Build Environment (can be modified)
@@ -257,16 +265,16 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      * @throws CustomToolException 
      * @since 0.4
      */
-    public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) throws CustomToolException {
+    public void checkVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) throws CustomToolException {
         // Check version
         if (tool.hasVersions()) {
             ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
             if (version == null) {
-                CustomToolsLogger.LogMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
+                CustomToolsLogger.logMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
                 throw new CustomToolException("Version has not been specified for the "+tool.getName());
             }
             
-            CustomToolsLogger.LogMessage(listener, tool.getName(), "Version "+version.getActualVersion()+" has been specified by "+version.getVersionSource());
+            CustomToolsLogger.logMessage(listener, tool.getName(), "Version "+version.getActualVersion()+" has been specified by "+version.getVersionSource());
             
             // Override default versions
             if (version.getVersionSource().equals(ToolVersion.DEFAULTS_SOURCE)) {            

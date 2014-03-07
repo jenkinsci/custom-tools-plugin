@@ -18,18 +18,34 @@ package com.synopsys.arc.jenkinsci.plugins.customtools;
 import hudson.model.BuildListener;
 
 /**
- *
+ * Provides logging routines for the plugin.
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  * @since 0.3
  */
 public class CustomToolsLogger {
     public static final String LOG_PREFIX = "[CustomTools] - ";
     
+    /**
+     * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String)}
+     * instead.
+     */
     public static void LogMessage(BuildListener listener, String message) {
+        logMessage(listener, message);
+    }
+    
+    /**
+     * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String, java.lang.String)}
+     * instead.
+     */
+    public static void LogMessage(BuildListener listener, String toolName, String message) {
+        logMessage(listener, toolName, message);
+    }
+    
+    public static void logMessage(BuildListener listener, String message) {
         listener.getLogger().println(CustomToolsLogger.LOG_PREFIX+message);
     }
     
-    public static void LogMessage(BuildListener listener, String toolName, String message) {
+    public static void logMessage(BuildListener listener, String toolName, String message) {
         listener.getLogger().println(CustomToolsLogger.LOG_PREFIX+toolName+": "+message);
     }
 }
