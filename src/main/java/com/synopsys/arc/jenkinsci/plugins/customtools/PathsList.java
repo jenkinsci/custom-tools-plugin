@@ -38,6 +38,7 @@ public class PathsList implements Serializable {
     /**
      * Constructor. Sets system's default separator and pathSeparator
      * @param paths List of paths to be returned
+     * @param homeDir Home directory of the tool
      */
     public PathsList(Collection<String> paths, String homeDir) {
         this(paths, File.pathSeparator, File.separator, homeDir);
@@ -87,7 +88,7 @@ public class PathsList implements Serializable {
     }
     
     /**
-     * Gets the list of installed tools
+     * Gets the list of installed tools.
      * @return A list with valid delimiters or null if paths is empty
      */
     public String toListString() {

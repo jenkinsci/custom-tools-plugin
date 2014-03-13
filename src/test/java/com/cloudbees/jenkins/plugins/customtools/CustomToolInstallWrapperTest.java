@@ -21,6 +21,7 @@ import com.synopsys.arc.jenkins.plugins.customtools.util.StubWrapper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.model.Result;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Builder;
 import hudson.tasks.Shell;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
+import org.jvnet.hudson.test.Bug;
 import org.jvnet.hudson.test.HudsonTestCase;
 
 /**
@@ -36,6 +38,9 @@ import org.jvnet.hudson.test.HudsonTestCase;
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  */
 public class CustomToolInstallWrapperTest extends HudsonTestCase {
+    
+    private static final String NON_EXISTENT_TOOL = "non-existent";
+        
     /**
      * Inserts {@link CustomToolInstallWrapper} after {@link StubWrapper}.
      * @throws Exception 
@@ -73,12 +78,30 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
         nestedWrapperTestImpl(wrappers, false);
     }
     
-    //@Bug(20560)
+    @Bug(20560)
     public void testEmptyToolsList() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(0); 
         wrappers.add(new CommandCallerInstaller());
         wrappers.add(new CustomToolInstallWrapper(null, MulticonfigWrapperOptions.DEFAULT, false));
         nestedWrapperTestImpl(wrappers, false);
+    }
+    
+    @Bug(0)
+    public void testDeletedTool() throws Exception {
+        FreeStyleProject project = createFreeStyleProject();
+        
+        CustomToolInstallWrapper.SelectedTool[] tools = 
+                new CustomToolInstallWrapper.SelectedTool[] { 
+                    new CustomToolInstallWrapper.SelectedTool(NON_EXISTENT_TOOL)
+                };
+        
+        project.getBuildWrappersList().add(
+                new CustomToolInstallWrapper(tools, MulticonfigWrapperOptions.DEFAULT, false));
+        
+        Future<FreeStyleBuild> build = project.scheduleBuild2(0);
+        assertBuildStatus(Result.FAILURE, build.get());
+        assertLogContains( 
+                Messages.CustomTool_GetToolByName_ErrorMessage(NON_EXISTENT_TOOL), build.get());
     }
     
     /**

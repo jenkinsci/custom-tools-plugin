@@ -93,7 +93,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         public CustomTool toCustomToolValidated() throws CustomToolException {
             CustomTool tool = toCustomTool();
             if (tool == null) {
-                throw new CustomToolException("Cannot get the tool "+name);
+                throw new CustomToolException(
+                    Messages.CustomTool_GetToolByName_ErrorMessage(name));
             }
             return tool;
         }
