@@ -28,7 +28,6 @@ import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 import java.io.IOException;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * A stub wrapper, which injects a test variable into the build environment.
@@ -45,7 +44,6 @@ public class StubWrapper extends BuildWrapper {
     @Override
     public Launcher decorateLauncher(AbstractBuild build, Launcher launcher, BuildListener listener)
             throws IOException, InterruptedException, Run.RunnerAbortedException {
-        final Map<String, String> envs = new TreeMap<String, String>();
       
         return new Launcher.LocalLauncher(listener) {
             @Override

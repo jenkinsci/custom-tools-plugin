@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -62,7 +63,7 @@ public class CustomTool extends ToolInstallation implements
     private final String exportedPaths;
     private final LabelSpecifics[] labelSpecifics;
     private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
-    private transient String correctedHome;
+    private transient String correctedHome = null;
     private final ToolVersionConfig toolVersion;
     private final String additionalVariables;
     
@@ -101,7 +102,10 @@ public class CustomTool extends ToolInstallation implements
         return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
     }
 
-    /**Check if the tool has additional variables set*/
+    /**
+     * Check if the tool has additional environment variables set.
+     * @return true when the tool injects additional environment variables. 
+     */
     public boolean hasAdditionalVariables() {
         return additionalVariables != null;
     }
@@ -180,6 +184,12 @@ public class CustomTool extends ToolInstallation implements
             save();
         }
 
+        /**
+         * Gets a {@link CustomTool} by its name.
+         * @param name A name of the tool to be retrieved.
+         * @return A {@link CustomTool} or null if it has no found
+         */
+        @CheckForNull
         public CustomTool byName(String name) {
             for (CustomTool tool : getInstallations()) {
                 if (tool.getName().equals(name)) {

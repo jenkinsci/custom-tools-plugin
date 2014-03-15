@@ -33,7 +33,21 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
 {    
     private EnvVariablesInjector(){}
      
+    /**
+     * @deprecated Use {@link #create(java.lang.String)} instead.
+     * This method will be removed in future versions.
+     */
     public static EnvVariablesInjector Create(String props) throws IOException {
+        return create(props);
+    }
+    
+    /**
+     * Creates a new injector for the specified properties.
+     * @param props Properties in Java Properties format
+     * @return A new injector
+     * @throws IOException Cannot load properties from the string
+     */
+    public static EnvVariablesInjector create(String props) throws IOException {
         Properties prop = new Properties();
         StringReader rdr = new StringReader(props);       
         prop.load(rdr);
@@ -49,11 +63,19 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
     }
     
     /**
+     * @deprecated Use {@link #injectVariables(hudson.EnvVars)} instead.
+     * This method will be removed in future versions.
+     */
+    public void Inject(EnvVars target) throws IOException {
+        injectVariables(target);
+    }
+    
+    /**
      * Inject variables into EnvVars
      * @param target Target variables
      * @throws IOException Exception during modification of EnvVars
      */
-    public void Inject(EnvVars target) throws IOException {
+    public void injectVariables(EnvVars target) throws IOException {
         for (Entry<String, EnvVariablesInjector.Entity> entry: entrySet()) {
             entry.getValue().Inject(target);
         }
@@ -94,17 +116,25 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         {
             this.envName = envName;
             this.envValue = envValue;
-            this.listDelimiter = listDelimiter;
-            this.isList = isList;
-            this.isOverrides = isOverrides;         
+         //   this.listDelimiter = listDelimiter;
+         //   this.isList = isList;
+         //   this.isOverrides = isOverrides;         
         }
+        
+       /**
+        * @deprecated Use {@link #injectVariables(hudson.EnvVars)} instead.
+        * This method will be removed in future versions.
+        */
+       public void Inject(EnvVars target) throws IOException {
+           injectVariables(target);
+       } 
         
        /**
         * Inject variables into EnvVars
         * @param target Target environment
         * @throws IOException Exception during modification of EnvVars
         */
-        public void Inject(EnvVars target) throws IOException {
+        public void injectVariables(EnvVars target) throws IOException {
             //TODO: check overrides
             //TODO: check lists 
             //TODO: substitute, check, etc.
@@ -115,7 +145,5 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
             
             target.put(envName, newEnvValue);
         }
-    }
-    
-    
+    }  
 }

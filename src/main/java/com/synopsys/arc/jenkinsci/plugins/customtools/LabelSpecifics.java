@@ -19,7 +19,6 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
-import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
@@ -33,9 +32,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @since 0.3
  */
 public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> implements Serializable {
-    private String label;
-    private String additionalVars;
-    private String exportedPaths;
+    
+    private final String label;
+    private final String additionalVars;
+    private final String exportedPaths;
     
     @DataBoundConstructor
     public LabelSpecifics(String label, String additionalVars, String exportedPaths) {
