@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.480.3</version>
+    <version>1.561</version>
   </parent>
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
@@ -23,9 +23,9 @@
         <name>Oleg Nenashev</name>
         <id>oleg_nenashev</id>
         <organization>Synopsys, Inc.</organization>
-        <organizationUrl>http://www.synopsys.com</organizationUrl>          
-        <timezone>+4</timezone>
+        <organizationUrl>http://www.synopsys.com</organizationUrl>
         <email>nenashev@synopsys.com; o.v.nenashev@gmail.com</email>
+        <timezone>+4</timezone>
     </developer>
   </developers>
 
@@ -65,5 +65,11 @@
       <version>0.28</version>
       <type>jar</type>
     </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>matrix-project</artifactId>
+        <version>1.1</version>
+        <type>jar</type>
+      </dependency>
   </dependencies>
 </project>
