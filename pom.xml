@@ -23,7 +23,8 @@
         <name>Oleg Nenashev</name>
         <id>oleg_nenashev</id>
         <organization>Synopsys, Inc.</organization>
-        <organizationUrl>http://www.synopsys.com</organizationUrl>          
+        <organizationUrl>http://www.synopsys.com</organizationUrl>
+        <email>nenashev@synopsys.com; o.v.nenashev@gmail.com</email>
         <timezone>+4</timezone>
     </developer>
   </developers>
