@@ -22,6 +22,7 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterDefinition.ParameterDescriptor;
+import hudson.model.ParameterValue;
 import hudson.model.StringParameterValue;
 import hudson.tools.ToolInstallation;
 import javax.annotation.CheckForNull;
@@ -95,7 +96,14 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
                 getVersionsListSource().createValue(req);
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
-    
+
+    @Override
+    public ParameterValue getDefaultParameterValue() {
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
+                getVersionsListSource().getDefaultParameterValue();
+        return new StringParameterValue(paramVal.getName(), paramVal.value);
+    }
+       
     @Extension
     public static class DescriptorImpl extends ParameterDescriptor {
 
