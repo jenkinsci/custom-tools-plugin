@@ -30,6 +30,7 @@ import hudson.model.User;
 import hudson.security.ACL;
 import hudson.security.Permission;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
+import hudson.security.SecurityRealm;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -43,7 +44,8 @@ import jenkins.model.Jenkins;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.HudsonTestCase;
+
 
 /**
  * Helper class to invoke {@link CLICommand} and check the response.
@@ -53,7 +55,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 public class CLICommandInvoker {
 
     private static final String username = "user";
-    private final JenkinsRule rule;
+    private final HudsonTestCase rule;
     private final CLICommand command;
 
     private InputStream stdin;
@@ -61,7 +63,7 @@ public class CLICommandInvoker {
     private List<Permission> permissions = Collections.emptyList();
     private Locale locale = Locale.ENGLISH;
 
-    public CLICommandInvoker(final JenkinsRule rule, final CLICommand command) {
+    public CLICommandInvoker(final HudsonTestCase rule, final CLICommand command) {
 
         if (command.getClass().getAnnotation(Extension.class) == null) {
 
@@ -75,7 +77,7 @@ public class CLICommandInvoker {
         this.command = command;
     }
 
-    public CLICommandInvoker(final JenkinsRule rule, final String command) {
+    public CLICommandInvoker(final HudsonTestCase rule, final String command) {
         this.rule = rule;
         this.command = CLICommand.clone(command);
 
@@ -125,8 +127,8 @@ public class CLICommandInvoker {
 
         if (permissions.isEmpty()) return;
 
-        JenkinsRule.DummySecurityRealm realm = rule.createDummySecurityRealm();
-        realm.addGroups(username, "group");
+        SecurityRealm realm = rule.createDummySecurityRealm();    
+        // realm.addGroups(username, "group");
         rule.jenkins.setSecurityRealm(realm);
 
         GlobalMatrixAuthorizationStrategy auth = new GlobalMatrixAuthorizationStrategy();

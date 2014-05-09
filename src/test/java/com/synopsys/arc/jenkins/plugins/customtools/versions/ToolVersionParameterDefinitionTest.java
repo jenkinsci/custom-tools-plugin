@@ -38,21 +38,20 @@ import hudson.tools.ToolProperty;
 import java.util.ArrayList;
 import java.util.List;
 import jenkins.model.Jenkins;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.Bug;
-import org.jvnet.hudson.test.CaptureEnvironmentBuilder;
-import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.HudsonTestCase;
+
 
 /**
  *
  * @author Oleg Nenashev <o.v.nenashev@gmail.com>
  */
-public class ToolVersionParameterDefinitionTest {
+public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
     
-    @Rule public JenkinsRule r = new JenkinsRule();
     private CLICommandInvoker command;
     
     private static final String TEST_TOOL_NAME="test";
@@ -63,7 +62,7 @@ public class ToolVersionParameterDefinitionTest {
     );
     
     private void setupVersionedTool() throws Exception {
-        CustomTool.DescriptorImpl tools = r.hudson.getDescriptorByType(CustomTool.DescriptorImpl.class);
+        CustomTool.DescriptorImpl tools = hudson.getDescriptorByType(CustomTool.DescriptorImpl.class);
         List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue", "./"));
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
@@ -73,7 +72,7 @@ public class ToolVersionParameterDefinitionTest {
     }
     
     private FreeStyleProject setupJobWithVersionParam(Slave targetSlave) throws Exception {
-        FreeStyleProject project = r.createFreeStyleProject("foo");
+        FreeStyleProject project = createFreeStyleProject("foo");
         ParametersDefinitionProperty pdp = new ParametersDefinitionProperty(
                 new StringParameterDefinition("string", "defaultValue", "description"),
                 new ToolVersionParameterDefinition(TEST_TOOL_NAME));
@@ -89,18 +88,18 @@ public class ToolVersionParameterDefinitionTest {
     public void testDefaultValueOnCLICall() throws Exception {           
         // Setup the environment
         setupVersionedTool();
-        DumbSlave slave = r.createSlave();
+        DumbSlave slave = createSlave();
         FreeStyleProject project = setupJobWithVersionParam(slave);
                
         // Create CLI & run command
-        command = new CLICommandInvoker(r, new BuildCommand());
+        command = new CLICommandInvoker(this, new BuildCommand());
         final CLICommandInvoker.Result result = command
                 .authorizedTo(Jenkins.ADMINISTER)
                 .invokeWithArgs("foo","-p","string=foo");
-        assertThat(result, succeeded());
+        MatcherAssert.assertThat(result, succeeded());
                 
         // Check the job
-        Queue.Item q = r.jenkins.getQueue().getItem(project);
+        Queue.Item q = jenkins.getQueue().getItem(project);
         Thread.sleep(5000);
         
         // Check executors health after a timeout
@@ -114,20 +113,18 @@ public class ToolVersionParameterDefinitionTest {
     public void testSpicifyVersionInCLICall() throws Exception {           
         // Setup the environment
         setupVersionedTool();
-        DumbSlave slave = r.createSlave();
-        FreeStyleProject project = setupJobWithVersionParam(slave);
-        CaptureEnvironmentBuilder recorder = new CaptureEnvironmentBuilder();
-        project.getBuildersList().add(recorder);       
+        DumbSlave slave = createSlave();
+        FreeStyleProject project = setupJobWithVersionParam(slave);  
         
         // Create CLI & run command
-        command = new CLICommandInvoker(r, new BuildCommand());
+        command = new CLICommandInvoker(this, new BuildCommand());
         final CLICommandInvoker.Result result = command
                 .authorizedTo(Jenkins.ADMINISTER)
                 .invokeWithArgs("foo","-p","string=foo","-p","TOOL_VERSION=test");
-        assertThat(result, succeeded());
+        MatcherAssert.assertThat(result, succeeded());
                 
         // Check the job
-        Queue.Item q = r.jenkins.getQueue().getItem(project);
+        Queue.Item q = jenkins.getQueue().getItem(project);
         Thread.sleep(5000);
         q.getFuture();
     }
