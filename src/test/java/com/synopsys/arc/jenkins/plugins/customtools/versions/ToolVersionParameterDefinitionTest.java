@@ -79,7 +79,6 @@ public class ToolVersionParameterDefinitionTest {
                 new ToolVersionParameterDefinition(TEST_TOOL_NAME));
         
         project.addProperty(pdp);
-        project.getBuildersList().add(new CaptureEnvironmentBuilder());
         project.setAssignedNode(targetSlave);
         
         return project;
@@ -108,5 +107,28 @@ public class ToolVersionParameterDefinitionTest {
         for (Executor exec : slave.toComputer().getExecutors()) {
             Assert.assertTrue("Executor is dead: "+exec, exec.isAlive());
         }
+    }
+    
+    @Test
+    @Bug(22923)
+    public void testSpicifyVersionInCLICall() throws Exception {           
+        // Setup the environment
+        setupVersionedTool();
+        DumbSlave slave = r.createSlave();
+        FreeStyleProject project = setupJobWithVersionParam(slave);
+        CaptureEnvironmentBuilder recorder = new CaptureEnvironmentBuilder();
+        project.getBuildersList().add(recorder);       
+        
+        // Create CLI & run command
+        command = new CLICommandInvoker(r, new BuildCommand());
+        final CLICommandInvoker.Result result = command
+                .authorizedTo(Jenkins.ADMINISTER)
+                .invokeWithArgs("foo","-p","string=foo","-p","TOOL_VERSION=test");
+        assertThat(result, succeeded());
+                
+        // Check the job
+        Queue.Item q = r.jenkins.getQueue().getItem(project);
+        Thread.sleep(5000);
+        q.getFuture();
     }
 }
