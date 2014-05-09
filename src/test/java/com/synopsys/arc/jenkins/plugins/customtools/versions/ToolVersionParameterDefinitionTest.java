@@ -17,7 +17,6 @@
 package com.synopsys.arc.jenkins.plugins.customtools.versions;
 
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
-import com.cloudbees.jenkins.plugins.customtools.CustomToolInstallerTest;
 import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import com.synopsys.arc.jenkins.plugins.customtools.util.CLICommandInvoker;
 import static com.synopsys.arc.jenkins.plugins.customtools.util.CLICommandInvoker.Matcher.succeeded;
@@ -26,9 +25,9 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionParame
 import hudson.cli.BuildCommand;
 import hudson.model.Executor;
 import hudson.model.FreeStyleProject;
-import hudson.model.Item;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Queue;
+import hudson.model.Slave;
 import hudson.model.StringParameterDefinition;
 import hudson.slaves.DumbSlave;
 import hudson.tools.CommandInstaller;
@@ -41,7 +40,6 @@ import java.util.List;
 import jenkins.model.Jenkins;
 import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.Bug;
@@ -56,46 +54,49 @@ public class ToolVersionParameterDefinitionTest {
     
     @Rule public JenkinsRule r = new JenkinsRule();
     private CLICommandInvoker command;
-    private final ToolVersionConfig versionConfig = new ToolVersionConfig(
+    
+    private static final String TEST_TOOL_NAME="test";
+    private static final ToolVersionConfig versionConfig = new ToolVersionConfig(
             new ExtendedChoiceParameterDefinition("TOOL_VERSION", 
                     ExtendedChoiceParameterDefinition.PARAMETER_TYPE_TEXT_BOX
                     , "5", null, null, "5", null, null, false, 5, "description")
     );
-
-
-    @Before public void setUp() {
-    }
     
-    @Test
-    @Bug(22925)
-    public void testDefaultValueOnCLICall() throws Exception {    
-        
-        // Target node
-        DumbSlave slave = r.createSlave();
-       
-        // Create tool
+    private void setupVersionedTool() throws Exception {
         CustomTool.DescriptorImpl tools = r.hudson.getDescriptorByType(CustomTool.DescriptorImpl.class);
         List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue", "./"));
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
-        CustomTool installation = new CustomTool("test", null, properties, "./", null, versionConfig, null);
+        CustomTool installation = new CustomTool(TEST_TOOL_NAME, null, properties, "./", null, versionConfig, null);
         tools.setInstallations(installation);
-        
-        // Setup the job
+    }
+    
+    private FreeStyleProject setupJobWithVersionParam(Slave targetSlave) throws Exception {
         FreeStyleProject project = r.createFreeStyleProject("foo");
-        project.setAssignedNode(slave);
         ParametersDefinitionProperty pdp = new ParametersDefinitionProperty(
                 new StringParameterDefinition("string", "defaultValue", "description"),
-                new ToolVersionParameterDefinition("test"));
-        project.addProperty(pdp);
-        CaptureEnvironmentBuilder builder = new CaptureEnvironmentBuilder();
-        project.getBuildersList().add(builder);
+                new ToolVersionParameterDefinition(TEST_TOOL_NAME));
         
+        project.addProperty(pdp);
+        project.getBuildersList().add(new CaptureEnvironmentBuilder());
+        project.setAssignedNode(targetSlave);
+        
+        return project;
+    }
+    
+    @Test
+    @Bug(22925)
+    public void testDefaultValueOnCLICall() throws Exception {           
+        // Setup the environment
+        setupVersionedTool();
+        DumbSlave slave = r.createSlave();
+        FreeStyleProject project = setupJobWithVersionParam(slave);
+               
         // Create CLI & run command
         command = new CLICommandInvoker(r, new BuildCommand());
         final CLICommandInvoker.Result result = command
-                .authorizedTo(Item.BUILD, Jenkins.READ, Jenkins.ADMINISTER)
+                .authorizedTo(Jenkins.ADMINISTER)
                 .invokeWithArgs("foo","-p","string=foo");
         assertThat(result, succeeded());
                 
