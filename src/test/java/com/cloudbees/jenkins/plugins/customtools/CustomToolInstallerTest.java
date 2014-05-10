@@ -101,7 +101,7 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         assertBuildStatusSuccess(build);          
     }
        
-    static CustomTool createTool(String name) throws IOException {
+    public static CustomTool createTool(String name) throws IOException {
         List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue",
                 "./"));
