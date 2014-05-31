@@ -29,6 +29,7 @@ import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Queue;
 import hudson.model.Slave;
 import hudson.model.StringParameterDefinition;
+import hudson.model.User;
 import hudson.slaves.DumbSlave;
 import hudson.tools.CommandInstaller;
 import hudson.tools.InstallSourceProperty;
@@ -90,7 +91,12 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
         setupVersionedTool();
         DumbSlave slave = createSlave();
         FreeStyleProject project = setupJobWithVersionParam(slave);
-               
+                        
+        // Check executors health after a timeout
+        for (Executor exec : slave.toComputer().getExecutors()) {
+            Assert.assertTrue("Executor has died before the CLI call: "+exec, exec.isActive());
+        }
+        
         // Create CLI & run command
         command = new CLICommandInvoker(this, new BuildCommand());
         final CLICommandInvoker.Result result = command
@@ -104,7 +110,7 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
         
         // Check executors health after a timeout
         for (Executor exec : slave.toComputer().getExecutors()) {
-            Assert.assertTrue("Executor is dead: "+exec, exec.isAlive());
+            Assert.assertTrue("Executor is dead: "+exec, exec.isActive());
         }
     }
     
