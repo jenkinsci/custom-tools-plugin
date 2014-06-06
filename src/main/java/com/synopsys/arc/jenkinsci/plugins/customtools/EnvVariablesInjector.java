@@ -22,6 +22,7 @@ import java.io.StringReader;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
+import javax.annotation.Nonnull;
 
 /**
  * Tool-specific environment variables injector.
@@ -37,7 +38,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
      * @deprecated Use {@link #create(java.lang.String)} instead.
      * This method will be removed in future versions.
      */
-    public static EnvVariablesInjector Create(String props) throws IOException {
+    public static @Nonnull EnvVariablesInjector Create(String props) throws IOException {
         return create(props);
     }
     
@@ -47,14 +48,13 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
      * @return A new injector
      * @throws IOException Cannot load properties from the string
      */
-    public static EnvVariablesInjector create(String props) throws IOException {
+    public static @Nonnull EnvVariablesInjector create(@Nonnull String props) throws IOException {
         Properties prop = new Properties();
         StringReader rdr = new StringReader(props);       
         prop.load(rdr);
         
         EnvVariablesInjector vars = new EnvVariablesInjector();
-        for (Entry<Object,Object> entry: prop.entrySet())
-        {     
+        for (Entry<Object,Object> entry: prop.entrySet()) {     
             String varName = (String)entry.getKey();
             Entity ent = new Entity(varName, (String)entry.getValue());
             vars.put(varName, ent);
@@ -75,7 +75,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
      * @param target Target variables
      * @throws IOException Exception during modification of EnvVars
      */
-    public void injectVariables(EnvVars target) throws IOException {
+    public void injectVariables(@Nonnull EnvVars target) throws IOException {
         for (Entry<String, EnvVariablesInjector.Entity> entry: entrySet()) {
             entry.getValue().Inject(target);
         }
@@ -125,7 +125,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         * @deprecated Use {@link #injectVariables(hudson.EnvVars)} instead.
         * This method will be removed in future versions.
         */
-       public void Inject(EnvVars target) throws IOException {
+       public void Inject(@Nonnull EnvVars target) throws IOException {
            injectVariables(target);
        } 
         
@@ -134,7 +134,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         * @param target Target environment
         * @throws IOException Exception during modification of EnvVars
         */
-        public void injectVariables(EnvVars target) throws IOException {
+        public void injectVariables(@Nonnull EnvVars target) throws IOException {
             //TODO: check overrides
             //TODO: check lists 
             //TODO: substitute, check, etc.

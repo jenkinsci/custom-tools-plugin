@@ -21,17 +21,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * Structure with list
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  */
 public class PathsList implements Serializable {
-    public List<String> paths;
+    public @Nonnull List<String> paths;
     /*Restored home dir*/
-    public String homeDir;
-    public String pathSeparator;
-    public String separator;
+    public @CheckForNull String homeDir;
+    public @CheckForNull String pathSeparator;
+    public @CheckForNull String separator;
 
     public static final PathsList EMPTY = new PathsList(new LinkedList<String>(), null);
 
@@ -40,7 +42,7 @@ public class PathsList implements Serializable {
      * @param paths List of paths to be returned
      * @param homeDir Home directory of the tool
      */
-    public PathsList(Collection<String> paths, String homeDir) {
+    public PathsList(@Nonnull Collection<String> paths, @CheckForNull String homeDir) {
         this(paths, File.pathSeparator, File.separator, homeDir);
     }
 
@@ -51,18 +53,20 @@ public class PathsList implements Serializable {
         this(new LinkedList<String>(), null, null, null);
     }
     
-    public PathsList(Collection<String> paths, String pathSeparator, String separator, String homeDir) {
+    public PathsList(@Nonnull Collection<String> paths, 
+            @CheckForNull String pathSeparator, @CheckForNull String separator, 
+            @CheckForNull String homeDir) {
         this.paths = new ArrayList<String>(paths);
         this.pathSeparator = pathSeparator;
         this.separator = separator;
         this.homeDir = homeDir;
     }
 
-    public String getHomeDir() {
+    public @CheckForNull String getHomeDir() {
         return homeDir;
     }
      
-    public boolean add(String path) {
+    public boolean add(@Nonnull String path) {
         return paths.add(path);
     }
     
@@ -72,7 +76,7 @@ public class PathsList implements Serializable {
      * @return True if the paths list has been modified after the tool installation
      */
     //TODO: Is it a bug?
-    public boolean add(PathsList pathsList) {
+    public boolean add(@Nonnull PathsList pathsList) {
         if (pathSeparator == null) {
             pathSeparator = pathsList.pathSeparator;
         }
@@ -91,7 +95,7 @@ public class PathsList implements Serializable {
      * Gets the list of installed tools.
      * @return A list with valid delimiters or null if paths is empty
      */
-    public String toListString() {
+    public @CheckForNull String toListString() {
         if (paths.isEmpty()) {
             return null;
         }

@@ -36,6 +36,7 @@ import java.util.Map;
  * @author rcampbell
  * @author Oleg Nenashev
  */
+//TODO: 1.567 provides a replacement
 public class DecoratedLauncher extends Launcher {
     private Launcher inner = null;
 

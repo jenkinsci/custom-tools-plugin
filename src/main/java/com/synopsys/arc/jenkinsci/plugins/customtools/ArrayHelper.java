@@ -16,6 +16,7 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools;
 
 import java.util.Arrays;
+import javax.annotation.CheckForNull;
 
 /**
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
@@ -29,7 +30,7 @@ public class ArrayHelper {
      * @param second Second array
      * @return 
      */
-    public static <TItemType> TItemType[] merge(TItemType[] first, TItemType[] second) {
+    public static <TItemType> @CheckForNull TItemType[] merge(@CheckForNull TItemType[] first, @CheckForNull TItemType[] second) {
         // Handle nulls
         if (first == null) {
             return second;

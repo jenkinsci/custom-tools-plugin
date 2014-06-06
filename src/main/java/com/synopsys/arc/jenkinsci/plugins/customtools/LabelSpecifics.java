@@ -23,6 +23,8 @@ import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
 import java.io.Serializable;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -33,18 +35,18 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> implements Serializable {
     
-    private final String label;
-    private final String additionalVars;
-    private final String exportedPaths;
+    private final @CheckForNull String label;
+    private final @CheckForNull String additionalVars;
+    private final @CheckForNull String exportedPaths;
     
     @DataBoundConstructor
-    public LabelSpecifics(String label, String additionalVars, String exportedPaths) {
+    public LabelSpecifics(@CheckForNull String label, @CheckForNull String additionalVars, @CheckForNull String exportedPaths) {
         this.label = Util.fixEmptyAndTrim(label);
         this.additionalVars = additionalVars;
         this.exportedPaths = exportedPaths;
     }
     
-    public String getAdditionalVars() {
+    public @CheckForNull String getAdditionalVars() {
         return additionalVars;
     }
     
@@ -52,11 +54,11 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         return additionalVars != null;
     }
 
-    public String getLabel() {
+    public @CheckForNull String getLabel() {
         return label;
     }
 
-    public String getExportedPaths() {
+    public @CheckForNull String getExportedPaths() {
         return exportedPaths;
     }
     
@@ -65,7 +67,7 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
      * @param node Node to be checked
      * @return True if specifics is applicable to node
      */
-    public boolean appliesTo(Node node) {
+    public boolean appliesTo(@Nonnull Node node) {
         String correctedLabel = Util.fixEmptyAndTrim(label);
         if (correctedLabel == null) {
             return true;
@@ -75,17 +77,17 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         return l == null || l.contains(node);
     }
     
-    public LabelSpecifics substitute(EnvVars vars) {
+    public @Nonnull LabelSpecifics substitute(EnvVars vars) {
         return new LabelSpecifics(label, vars.expand(additionalVars), vars.expand(exportedPaths));
     }
     
-    public LabelSpecifics substitute(Node node) {
+    public @Nonnull LabelSpecifics substitute(Node node) {
         return new LabelSpecifics(label, 
                 EnvStringParseHelper.resolveExportedPath(additionalVars, node), 
                 EnvStringParseHelper.resolveExportedPath(exportedPaths, node));
     }
     
-    public static LabelSpecifics[] substitute (LabelSpecifics[] specifics, EnvVars vars) {
+    public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, EnvVars vars) {
         LabelSpecifics[] out = new LabelSpecifics[specifics.length];
         for (int i=0; i<specifics.length; i++) {
             out[i] = specifics[i].substitute(vars);
@@ -93,7 +95,7 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         return out;
     }
     
-    public static LabelSpecifics[] substitute (LabelSpecifics[] specifics, Node node) {
+    public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, Node node) {
         LabelSpecifics[] out = new LabelSpecifics[specifics.length];
         for (int i=0; i<specifics.length; i++) {
             out[i] = specifics[i].substitute(node);

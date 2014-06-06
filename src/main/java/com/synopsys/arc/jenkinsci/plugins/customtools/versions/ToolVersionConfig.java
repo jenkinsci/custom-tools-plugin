@@ -21,25 +21,26 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import java.io.Serializable;
+import javax.annotation.Nonnull;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * Class implements support of versions for custom tools 
+ * Class implements support of versions for custom tools. 
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  * @since 0.4
  */
-public class ToolVersionConfig extends AbstractDescribableImpl<ToolVersionConfig> 
-    implements Serializable 
-{
+public class ToolVersionConfig extends AbstractDescribableImpl<ToolVersionConfig>
+        implements Serializable {
+
     public static final ToolVersionConfig DEFAULT = null;
-    private final ExtendedChoiceParameterDefinition versionsListSource;
+    private final @Nonnull ExtendedChoiceParameterDefinition versionsListSource;
 
     @DataBoundConstructor
-    public ToolVersionConfig(ExtendedChoiceParameterDefinition versionsListSource) {
+    public ToolVersionConfig(@Nonnull ExtendedChoiceParameterDefinition versionsListSource) {
         this.versionsListSource = versionsListSource;
     }
 
-    public ExtendedChoiceParameterDefinition getVersionsListSource() {
+    public @Nonnull ExtendedChoiceParameterDefinition getVersionsListSource() {
         return versionsListSource;
     }
      

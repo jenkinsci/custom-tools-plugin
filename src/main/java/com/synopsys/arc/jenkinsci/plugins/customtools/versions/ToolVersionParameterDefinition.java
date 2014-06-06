@@ -25,6 +25,7 @@ import hudson.model.ParameterDefinition.ParameterDescriptor;
 import hudson.model.StringParameterValue;
 import hudson.tools.ToolInstallation;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -53,8 +54,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
      * Gets a {@link CustomTool} linked with this Parameter definition.
      * @return A custom tool or null if it has not been found
      */
-    @CheckForNull
-    public final CustomTool getTool() {
+    public final @CheckForNull CustomTool getTool() {
         CustomTool.DescriptorImpl tool = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
         return tool.byName(toolName);
     }
@@ -63,13 +63,12 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
      * Gets a Tool Version configuration for the parameter definition.
      * @return A tool version configuration or null if the tool cannot be found.
      */
-    @CheckForNull
-    public final ToolVersionConfig getVersionConfig() {
+    public final @CheckForNull ToolVersionConfig getVersionConfig() {
         CustomTool tool = getTool();
         return tool != null ? tool.getToolVersion() : null;
     }
     
-    private ExtendedChoiceParameterDefinition getVersionsListSource() {
+    private @Nonnull ExtendedChoiceParameterDefinition getVersionsListSource() {
        ToolVersionConfig versionConfig = getVersionConfig();
         if (versionConfig == null) {
             throw new IllegalStateException(
@@ -81,18 +80,14 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
     
     @Override
     public StringParameterValue createValue(StaplerRequest req, JSONObject jo)
-            throws IllegalStateException
-    {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
-                getVersionsListSource().createValue(req, jo);
+            throws IllegalStateException {
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) getVersionsListSource().createValue(req, jo);
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
 
     @Override
-    public StringParameterValue createValue(StaplerRequest req) {       
-        
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
-                getVersionsListSource().createValue(req);
+    public StringParameterValue createValue(StaplerRequest req) {
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) getVersionsListSource().createValue(req);
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
     

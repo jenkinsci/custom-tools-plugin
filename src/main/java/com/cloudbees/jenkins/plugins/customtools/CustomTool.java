@@ -45,13 +45,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * An arbitrary tool, which can add directories to the build's PATH
- * 
+ * An arbitrary tool, which can add directories to the build's PATH.
  * @author rcampbell
+ * @author Oleg Nenashev
  * 
  */
 public class CustomTool extends ToolInstallation implements
@@ -60,16 +61,32 @@ public class CustomTool extends ToolInstallation implements
     /**
      * File set includes string like **\/bin These will be added to the PATH
      */
-    private final String exportedPaths;
-    private final LabelSpecifics[] labelSpecifics;
+    private final @CheckForNull String exportedPaths;
+    /**
+     * Label-specific options.
+     */
+    private final @CheckForNull LabelSpecifics[] labelSpecifics;
+    /**
+     * A cached value of the home directory.
+     */
+    private transient @CheckForNull String correctedHome = null;
+    /**
+     * Optional field, which referenced the {@link ToolVersion} configuration.
+     */
+    private final @CheckForNull ToolVersionConfig toolVersion;
+    /**
+     * Additional variables string.
+     * Stores variables expression in *.properties format.
+     */
+    private final @CheckForNull String additionalVariables;
+    
     private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
-    private transient String correctedHome = null;
-    private final ToolVersionConfig toolVersion;
-    private final String additionalVariables;
     
     @DataBoundConstructor
-    public CustomTool(String name, String home, List properties,
-            String exportedPaths, LabelSpecifics[] labelSpecifics, ToolVersionConfig toolVersion, String additionalVariables) {
+    public CustomTool(@Nonnull String name, @Nonnull String home, 
+            @CheckForNull List properties, @CheckForNull String exportedPaths, 
+            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion, 
+            @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
         this.labelSpecifics = labelSpecifics;
@@ -77,11 +94,15 @@ public class CustomTool extends ToolInstallation implements
         this.additionalVariables = additionalVariables;
     }
     
-    public String getExportedPaths() {
+    public @CheckForNull String getExportedPaths() {
         return exportedPaths;
     }
 
-    public ToolVersionConfig getToolVersion() {
+    /**
+     * Gets the tool version configuration.
+     * @return Tool version configuration or null if it is not configured.
+     */
+    public @CheckForNull ToolVersionConfig getToolVersion() {
         return toolVersion;
     }
     
@@ -90,15 +111,15 @@ public class CustomTool extends ToolInstallation implements
     }
     
     @Override
-    public String getHome() {
+    public @Nonnull String getHome() {
         return (correctedHome != null) ? correctedHome : super.getHome(); 
     }
         
-    public void correctHome(PathsList pathList) {
+    public void correctHome(@Nonnull PathsList pathList) {
         correctedHome = pathList.getHomeDir(); 
     }
 
-    public LabelSpecifics[] getLabelSpecifics() {
+    public @Nonnull LabelSpecifics[] getLabelSpecifics() {
         return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
     }
 
@@ -110,7 +131,7 @@ public class CustomTool extends ToolInstallation implements
         return additionalVariables != null;
     }
    
-    public String getAdditionalVariables() {
+    public @CheckForNull String getAdditionalVariables() {
         return additionalVariables;
     }
          
@@ -123,7 +144,7 @@ public class CustomTool extends ToolInstallation implements
     }
 
     @Override
-    public CustomTool forNode(Node node, TaskListener log) throws IOException,
+    public @Nonnull CustomTool forNode(Node node, TaskListener log) throws IOException,
             InterruptedException {       
         String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
         String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
@@ -135,6 +156,7 @@ public class CustomTool extends ToolInstallation implements
     }
     
     //FIXME: just a stub
+    @Deprecated
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
         return new CustomTool(getName(), getHome(), getProperties().toList(), 
                 getExportedPaths(), getLabelSpecifics(), 
@@ -142,7 +164,7 @@ public class CustomTool extends ToolInstallation implements
     }
     
     /**
-     * Checks consistency of the tool.
+     * Checks the tool consistency.
      * @throws CustomToolException Validation error
      */
     public void check() throws CustomToolException {
@@ -156,7 +178,7 @@ public class CustomTool extends ToolInstallation implements
      * @return List of the specifics to be applied
      * @since 0.3
      */
-    public List<LabelSpecifics> getAppliedSpecifics(Node node) {
+    public @Nonnull List<LabelSpecifics> getAppliedSpecifics(@Nonnull Node node) {
         List<LabelSpecifics> out = new LinkedList<LabelSpecifics>();
         for (LabelSpecifics spec : labelSpecifics) {
             if (spec.appliesTo(node)) {
@@ -189,8 +211,7 @@ public class CustomTool extends ToolInstallation implements
          * @param name A name of the tool to be retrieved.
          * @return A {@link CustomTool} or null if it has no found
          */
-        @CheckForNull
-        public CustomTool byName(String name) {
+        public @CheckForNull CustomTool byName(String name) {
             for (CustomTool tool : getInstallations()) {
                 if (tool.getName().equals(name)) {
                     return tool;
@@ -214,9 +235,9 @@ public class CustomTool extends ToolInstallation implements
      * @return a list of directories to add to the $PATH
      * 
      * @throws IOException
-     * @throws InterruptedException
+     * @throws InterruptedException Operation has been interrupted 
      */
-    protected PathsList getPaths(Node node) throws IOException, InterruptedException {
+    protected @Nonnull PathsList getPaths(@Nonnull Node node) throws IOException, InterruptedException {
 
         FilePath homePath = new FilePath(node.getChannel(), getHome());
         //FIXME: Why?
@@ -226,7 +247,6 @@ public class CustomTool extends ToolInstallation implements
         final List<LabelSpecifics> specs = getAppliedSpecifics(node);
         
         PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {          
-            
             private void parseLists(String pathList, List<String> target) {
                 String[] items = pathList.split("\\s*,\\s*");              
                 for (String item : items) {

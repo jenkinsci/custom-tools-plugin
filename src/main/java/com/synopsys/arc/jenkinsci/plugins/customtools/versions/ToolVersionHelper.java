@@ -43,10 +43,11 @@ public class ToolVersionHelper {
     
     public static ExtendedChoiceParameterDefinition getVersionDescr(String toolName) {
         CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
-        CustomTool tool = tools.byName(toolName);  
+        final CustomTool tool = tools.byName(toolName);  
+        final ToolVersionConfig toolVersionConfig = (tool != null) ? tool.getToolVersion() : null;
         
-        return tool != null && tool.hasVersions() 
-                ? tool.getToolVersion().getVersionsListSource() 
+        return toolVersionConfig !=null
+                ? toolVersionConfig.getVersionsListSource() 
                 : getDefaultVersionDescr(toolName);
     }
     
@@ -54,7 +55,7 @@ public class ToolVersionHelper {
      * Gets list of versioned tools.
      * @return List of tools, which have versions specified
      */
-    public static List<CustomTool> getAllVersionedTools() {
+    public static @Nonnull List<CustomTool> getAllVersionedTools() {
         CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
         List<CustomTool> res = new LinkedList<CustomTool>();
         for (CustomTool tool : tools.getInstallations()) {

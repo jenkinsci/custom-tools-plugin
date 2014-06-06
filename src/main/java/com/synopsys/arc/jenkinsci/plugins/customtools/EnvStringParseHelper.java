@@ -21,6 +21,8 @@ import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import java.util.Map;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * Provides parsing of environment variables in input string.
@@ -37,7 +39,7 @@ public class EnvStringParseHelper {
      * @return Raw string
      * @since 0.3
      */
-    public static String resolveExportedPath(String exportedPaths, EnvVars environment)  {
+    public static String resolveExportedPath(@CheckForNull String exportedPaths, @Nonnull EnvVars environment)  {
         if (exportedPaths == null) return null;
         if (!exportedPaths.contains("${")) {
             return exportedPaths;
@@ -53,7 +55,7 @@ public class EnvStringParseHelper {
         return substitutedString;     
     }
     
-    public static String resolveExportedPath(String exportedPaths, Node node) {
+    public static String resolveExportedPath(@CheckForNull String exportedPaths, @Nonnull Node node) {
         if (exportedPaths == null) return null;
         if (!exportedPaths.contains("${")) {
             return exportedPaths;
@@ -80,7 +82,7 @@ public class EnvStringParseHelper {
      * @return Substituted string
      * @since 0.3
      */
-    public static String substituteNodeProperty(String macroString, NodeProperty<?> property) {
+    public static String substituteNodeProperty(@CheckForNull String macroString, @CheckForNull NodeProperty<?> property) {
         // Get environment variables
         if (property != null && property instanceof EnvironmentVariablesNodeProperty) {
            EnvironmentVariablesNodeProperty prop = (EnvironmentVariablesNodeProperty)property;
@@ -93,16 +95,20 @@ public class EnvStringParseHelper {
     
     /**
      * Resolves tools installation directory using global variables.
-     * @param exportedPaths Input path with macro calls
-     * @return Raw string
+     * @param inputString Input path with macro calls
+     * @param macroName Input string
      * @throws CustomToolException String validation failed
      * @since 0.3
      */
-    public static void checkStringForMacro(String stringName, String exportedPaths) 
-            throws CustomToolException {     
+    public static void checkStringForMacro(@CheckForNull String macroName, @CheckForNull String inputString) 
+            throws CustomToolException { 
+        if (inputString == null) {
+            return;
+        }
+        
         // Check consistensy and throw errors
-        if (exportedPaths.contains("${")) {
-           throw new CustomToolException("Can't resolve all variables in "+stringName+" string. Final state: "+exportedPaths);
+        if (inputString.contains("${")) {
+           throw new CustomToolException("Can't resolve all variables in "+macroName+" string. Final state: "+inputString);
         } 
     }
 }

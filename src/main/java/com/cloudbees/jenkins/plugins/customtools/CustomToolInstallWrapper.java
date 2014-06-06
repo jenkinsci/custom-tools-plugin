@@ -84,13 +84,11 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             return name;
         }
         
-        @CheckForNull
-        public CustomTool toCustomTool() {
+        public @CheckForNull CustomTool toCustomTool() {
             return ((CustomTool.DescriptorImpl)Hudson.getInstance().getDescriptor(CustomTool.class)).byName(name);
         }
         
-        @Nonnull
-        public CustomTool toCustomToolValidated() throws CustomToolException {
+        public @Nonnull CustomTool toCustomToolValidated() throws CustomToolException {
             CustomTool tool = toCustomTool();
             if (tool == null) {
                 throw new CustomToolException(
@@ -100,8 +98,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
     }
     
-    private SelectedTool[] selectedTools = new SelectedTool[0];
-    private final MulticonfigWrapperOptions multiconfigOptions;    
+    private @Nonnull SelectedTool[] selectedTools = new SelectedTool[0];
+    private final @Nonnull MulticonfigWrapperOptions multiconfigOptions;    
     private final boolean convertHomesToUppercase;
     
     @DataBoundConstructor
@@ -140,7 +138,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         };
     }
     
-    public SelectedTool[] getSelectedTools() {
+    public @Nonnull SelectedTool[] getSelectedTools() {
         return selectedTools.clone();
     }
     
@@ -170,7 +168,11 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         // Each tool can export zero or many directories to the PATH
-        Node node =  Computer.currentComputer().getNode();
+        final Node node =  Computer.currentComputer().getNode();
+        if (node == null) {
+            throw new CustomToolException("Cannot install tools on the deleted node");
+        }
+        
         for (SelectedTool selectedToolName : selectedTools) {
             CustomTool tool = selectedToolName.toCustomToolValidated();            
             CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
@@ -192,7 +194,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             
             // Handle global options of the tool      
             //TODO: convert to label specifics?
-            PathsList installedPaths = installed.getPaths(node);          
+            final PathsList installedPaths = installed.getPaths(node);          
             installed.correctHome(installedPaths);
             paths.add(installedPaths);
             if (installed.hasAdditionalVariables()) {
@@ -263,6 +265,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     
     /**
      * @deprecated The method is deprecated. It will be removed in future versions.
+     * @throws CustomToolException
      */
     public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) 
             throws CustomToolException  {
@@ -279,7 +282,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      * @throws CustomToolException 
      * @since 0.4
      */
-    public void checkVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) throws CustomToolException {
+    public void checkVersions (@Nonnull CustomTool tool, @Nonnull BuildListener listener, 
+            @Nonnull EnvVars buildEnv, @Nonnull Node node, @Nonnull EnvVars target) throws CustomToolException {
         // Check version
         if (tool.hasVersions()) {
             ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
@@ -299,8 +303,6 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }  
     }
     
-    
-    
     @Override
     public Descriptor<BuildWrapper> getDescriptor() {
         return DESCRIPTOR;
@@ -317,10 +319,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
     /**
      * Gets multi-configuration job parameters.
-     * @return 
+     * @return Configured options. Returns default options if not specified.
      * @since 0.3
      */
-    public MulticonfigWrapperOptions getMulticonfigOptions() {
+    public @Nonnull MulticonfigWrapperOptions getMulticonfigOptions() {
         return multiconfigOptions;
     }  
 
@@ -333,10 +335,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             super(CustomToolInstallWrapper.class);
         }
 
+        @Override
         public String getDisplayName() {
             return Messages.Descriptor_DisplayName();
         }
 
+        @Override
         public boolean isApplicable(AbstractProject<?, ?> item) {
             return true;
         }

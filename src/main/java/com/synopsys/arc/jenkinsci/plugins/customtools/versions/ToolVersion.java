@@ -21,6 +21,8 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import hudson.EnvVars;
 import hudson.model.Node;
 import java.io.Serializable;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * A stub for a tool versions.
@@ -29,7 +31,7 @@ import java.io.Serializable;
  */
 public class ToolVersion implements Serializable {
     private String variableName;
-    private String defaultVersion;
+    private @CheckForNull String defaultVersion;
     private String actualVersion;
     private String versionSource;
     public static final String DEFAULTS_SOURCE = "defaults";
@@ -43,7 +45,8 @@ public class ToolVersion implements Serializable {
         this(variableName, defaultVersion, null, null);
     }
     
-    private ToolVersion (ToolVersion defaultVersion, String actualVersion, String versionSource) {
+    private ToolVersion (@Nonnull ToolVersion defaultVersion, @Nonnull String actualVersion, 
+            @Nonnull String versionSource) {
         this(defaultVersion.getVariableName(), defaultVersion.getDefaultVersion(), actualVersion, versionSource);
     }
 
@@ -58,7 +61,7 @@ public class ToolVersion implements Serializable {
         return defaultVersion != null;
     }
 
-    public String getDefaultVersion() {
+    public @CheckForNull String getDefaultVersion() {
         return defaultVersion;
     }
         
@@ -78,26 +81,39 @@ public class ToolVersion implements Serializable {
         return versionSource;
     }
     
-    public static ToolVersion getDefaultToolVersion(CustomTool tool) {
-        ExtendedChoiceParameterDefinition def = tool.getToolVersion().getVersionsListSource();
+    /**
+     * Retrieves the default {@link CustomTool} version.
+     * @param tool Tool
+     * @return The default version or null if the versioning is not configured. 
+     */
+    public static @CheckForNull ToolVersion getDefaultToolVersion(@Nonnull CustomTool tool) {
+        final ToolVersionConfig versionConfig = tool.getToolVersion();
+        if (versionConfig == null) {
+            return null;
+        }
+        
+        ExtendedChoiceParameterDefinition def = versionConfig.getVersionsListSource();
         String defaultVersion = hudson.Util.fixEmptyAndTrim(def.getEffectiveDefaultValue());
         return new ToolVersion(def.getName(), defaultVersion);
     }
     
     /**
-     * Method gets effective tool version for the build
+     * Method gets effective tool version for the build.
      * @param tool Custom tool
      * @param buildEnv Current build environment
      * @param node Node, where the build runs 
-     * @return Effective tool version. null in case of unavailable version
+     * @return Effective tool version. Null if the version is unavailable
      */
-    public static ToolVersion getEffectiveToolVersion(CustomTool tool, EnvVars buildEnv, Node node) {
-        ToolVersion defaultVersion = getDefaultToolVersion(tool);
+    public static @CheckForNull ToolVersion getEffectiveToolVersion(CustomTool tool, EnvVars buildEnv, Node node) {
+        final ToolVersion defaultVersion = getDefaultToolVersion(tool);
+        if (defaultVersion == null) {
+            return null;
+        }
         
-        // Check if node has version specified
+        // Check if the node has version specified
         String subst = "${"+defaultVersion.getVariableName()+"}"; 
                 
-        // Try to find variable in environment
+        // Try to find a variable in environment
         String res = EnvStringParseHelper.resolveExportedPath(subst, node);
         if (!subst.equals(res)) {
             return new ToolVersion(defaultVersion, res, "node or global variables");
@@ -114,7 +130,5 @@ public class ToolVersion implements Serializable {
     @Override
     public String toString() {
         return defaultVersion;
-    }
-    
-    
+    }    
 }

@@ -15,15 +15,16 @@
  */
 package com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig;
 
+import hudson.matrix.MatrixProject;
 import java.io.Serializable;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * Provides specific options for multi-configuration jobs.
+ * Provides specific options for {@link MatrixProject}s.
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  */
 public class MulticonfigWrapperOptions implements Serializable {
-    private boolean skipMasterInstallation;
+    private final boolean skipMasterInstallation;
     public static final MulticonfigWrapperOptions DEFAULT = new MulticonfigWrapperOptions(false);
 
     @DataBoundConstructor
