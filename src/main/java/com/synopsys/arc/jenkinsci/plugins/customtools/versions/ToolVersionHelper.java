@@ -20,6 +20,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 import hudson.tools.ToolInstallation;
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 /**
  * Provides helper for toll versions handling.

@@ -30,7 +30,8 @@ public class ArrayHelper {
      * @param second Second array
      * @return 
      */
-    public static <TItemType> @CheckForNull TItemType[] merge(@CheckForNull TItemType[] first, @CheckForNull TItemType[] second) {
+    @CheckForNull
+    public static <TItemType> TItemType[] merge(@CheckForNull TItemType[] first, @CheckForNull TItemType[] second) {
         // Handle nulls
         if (first == null) {
             return second;
