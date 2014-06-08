@@ -20,10 +20,13 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterValue;
 import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
+import hudson.cli.CLICommand;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterDefinition.ParameterDescriptor;
+import hudson.model.ParameterValue;
 import hudson.model.StringParameterValue;
 import hudson.tools.ToolInstallation;
+import java.io.IOException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import net.sf.json.JSONObject;
@@ -73,24 +76,39 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
         if (versionConfig == null) {
             throw new IllegalStateException(
                     Messages.Versions_ToolVersionParameterDefinition_GetVersionConfigError(toolName));
-        } 
-        
-        return versionConfig.getVersionsListSource(); 
+        }
+
+        return versionConfig.getVersionsListSource();
     }
-    
+        
     @Override
     public StringParameterValue createValue(StaplerRequest req, JSONObject jo)
             throws IllegalStateException {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) getVersionsListSource().createValue(req, jo);
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
+                getVersionsListSource().createValue(req, jo);
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
 
     @Override
     public StringParameterValue createValue(StaplerRequest req) {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) getVersionsListSource().createValue(req);
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
+                getVersionsListSource().createValue(req);
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
+
+    @Override
+    public ParameterValue createValue(CLICommand command, String value) throws IOException, InterruptedException {
+        ParameterValue val = getDefaultParameterValue();
+        return new StringParameterValue(val.getName(), value);
+    }
     
+    @Override
+    public ParameterValue getDefaultParameterValue() {
+        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
+                getVersionsListSource().getDefaultParameterValue();
+        return new StringParameterValue(paramVal.getName(), paramVal.value);
+    }
+       
     @Extension
     public static class DescriptorImpl extends ParameterDescriptor {
 
