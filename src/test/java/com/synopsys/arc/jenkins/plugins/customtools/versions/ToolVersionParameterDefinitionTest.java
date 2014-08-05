@@ -110,7 +110,7 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
     
     @Test
     @Bug(22923)
-    public void testSpicifyVersionInCLICall() throws Exception {           
+    public void testSpecifyVersionInCLICall() throws Exception {           
         // Setup the environment
         setupVersionedTool();
         DumbSlave slave = createSlave();
