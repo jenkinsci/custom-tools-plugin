@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -137,18 +138,22 @@ public class CustomTool extends ToolInstallation implements
          
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
-        return new CustomTool(getName(), environment.expand(getHome()),
-                getProperties().toList(), environment.expand(exportedPaths),
+        String substitutedHomeDir = VariablesSubstitutionHelper.PATH.resolveVariable(getHome(), environment);     
+        String substitutedPath = VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, environment);          
+        String substitutedAdditionalVariables = VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVariables, environment);
+        
+        return new CustomTool(getName(), substitutedHomeDir,
+                getProperties().toList(), substitutedPath,
                 LabelSpecifics.substitute(getLabelSpecifics(), environment), 
-                toolVersion, environment.expand(additionalVariables));
+                toolVersion, substitutedAdditionalVariables);
     }
 
     @Override
-    public @Nonnull CustomTool forNode(Node node, TaskListener log) throws IOException,
-            InterruptedException {       
-        String substitutedPath = EnvStringParseHelper.resolveExportedPath(exportedPaths, node);
-        String substitutedHomeDir = EnvStringParseHelper.resolveExportedPath(translateFor(node, log), node);
-        String substitutedAdditionalVariables = EnvStringParseHelper.resolveExportedPath(additionalVariables, node);
+    public @Nonnull CustomTool forNode(Node node, TaskListener log) 
+            throws IOException, InterruptedException {   
+        String substitutedHomeDir = VariablesSubstitutionHelper.PATH.resolveVariable(translateFor(node, log), node);  
+        String substitutedPath = VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, node);            
+        String substitutedAdditionalVariables = VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVariables, node);
         
         return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), 
                 substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node), 
