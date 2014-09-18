@@ -232,8 +232,9 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                  
                 // Inject paths
                 final String injectedPaths = paths.toListString();              
-                if (injectedPaths != null) {              
-                    vars.override("PATH+", injectedPaths);
+                if (injectedPaths != null) {
+                    String initPaths = vars.get("PATH");
+                    vars.override("PATH", initPaths + injectedPaths);
                 }
                                
                 // Inject additional variables

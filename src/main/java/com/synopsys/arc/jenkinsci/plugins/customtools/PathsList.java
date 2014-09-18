@@ -93,7 +93,7 @@ public class PathsList implements Serializable {
     
     /**
      * Gets the list of installed tools.
-     * @return A list with valid delimiters or null if paths is empty
+     * @return A list with valid delimiters (including the initial delimiter) or null if paths is empty
      */
     public @CheckForNull String toListString() {
         if (paths.isEmpty()) {
@@ -102,8 +102,8 @@ public class PathsList implements Serializable {
         
         StringBuilder builder = new StringBuilder();
         for ( String path : paths) {         
-            builder.append(path);
             builder.append(pathSeparator);
+            builder.append(path);
         }            
         return builder.toString();
     }
