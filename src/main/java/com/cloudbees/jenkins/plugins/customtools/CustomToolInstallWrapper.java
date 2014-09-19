@@ -228,6 +228,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                     vars = toEnvVars(starter.envs());
                 } catch (NullPointerException npe) {
                     vars = new EnvVars();
+                } catch (InterruptedException x) {
+                    throw new IOException(x);
                 }
                  
                 // Inject paths
@@ -253,8 +255,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 return getInner().launch(starter.envs(vars));
             }
                         
-            private EnvVars toEnvVars(String[] envs) {
-                EnvVars vars = new EnvVars();
+            private EnvVars toEnvVars(String[] envs) throws IOException, InterruptedException {
+                EnvVars vars = node.toComputer().getEnvironment();
                 for (String line : envs) {
                     vars.addLine(line);
                 }
