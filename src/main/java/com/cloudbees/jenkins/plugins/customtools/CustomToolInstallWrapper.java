@@ -99,7 +99,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }
     
     private @Nonnull SelectedTool[] selectedTools = new SelectedTool[0];
-    private final @Nonnull MulticonfigWrapperOptions multiconfigOptions;    
+    private final @CheckForNull MulticonfigWrapperOptions multiconfigOptions;    
     private final boolean convertHomesToUppercase;
     
     @DataBoundConstructor
@@ -162,7 +162,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         // Handle multi-configuration build
         if (build instanceof MatrixBuild) {  
             CustomToolsLogger.logMessage(listener, "Skipping installation of tools at the master job");
-            if (multiconfigOptions.isSkipMasterInstallation()) {
+            if (getMulticonfigOptions().isSkipMasterInstallation()) {
                 return launcher;
             }
         }
@@ -325,7 +325,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      * @since 0.3
      */
     public @Nonnull MulticonfigWrapperOptions getMulticonfigOptions() {
-        return multiconfigOptions;
+        return multiconfigOptions != null ? multiconfigOptions : MulticonfigWrapperOptions.DEFAULT;
     }  
 
     @Extension
