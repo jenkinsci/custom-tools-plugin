@@ -9,7 +9,7 @@
   <groupId>com.cloudbees.jenkins.plugins</groupId>
   <artifactId>custom-tools-plugin</artifactId>
   <name>Jenkins Custom Tools Plugin</name>
-  <version>0.4.4-SNAPSHOT</version>
+  <version>0.4.4</version>
   <packaging>hpi</packaging>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Custom+Tools+Plugin</url>
 
