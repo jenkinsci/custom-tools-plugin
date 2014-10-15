@@ -26,6 +26,7 @@ import java.io.Serializable;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
+import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -77,17 +78,19 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         return l == null || l.contains(node);
     }
     
-    public @Nonnull LabelSpecifics substitute(EnvVars vars) {
-        return new LabelSpecifics(label, vars.expand(additionalVars), vars.expand(exportedPaths));
-    }
-    
-    public @Nonnull LabelSpecifics substitute(Node node) {
+    public @Nonnull LabelSpecifics substitute(@Nonnull EnvVars vars) {
         return new LabelSpecifics(label, 
-                EnvStringParseHelper.resolveExportedPath(additionalVars, node), 
-                EnvStringParseHelper.resolveExportedPath(exportedPaths, node));
+                VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVars, vars),
+                VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, vars));
     }
     
-    public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, EnvVars vars) {
+    public @Nonnull LabelSpecifics substitute(@Nonnull Node node) {
+        return new LabelSpecifics(label, 
+                VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVars, node),
+                VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, node));
+    }
+    
+    public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, @Nonnull EnvVars vars) {
         LabelSpecifics[] out = new LabelSpecifics[specifics.length];
         for (int i=0; i<specifics.length; i++) {
             out[i] = specifics[i].substitute(vars);

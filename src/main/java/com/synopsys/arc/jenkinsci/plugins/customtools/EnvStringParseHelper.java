@@ -23,76 +23,23 @@ import hudson.slaves.NodeProperty;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
+import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper.SimpleVariablesSubstitutionHelper;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 /**
  * Provides parsing of environment variables in input string.
  * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
  * @since 0.3
  */
+@Restricted(NoExternalUse.class)
 public class EnvStringParseHelper {
+    
     private EnvStringParseHelper() {};
     
-    /**
-     * Resolves tools installation directory using global variables.
-     * @param environment Collection of environment variables
-     * @param exportedPaths Input path with macro calls
-     * @return Raw string
-     * @since 0.3
-     */
-    public static String resolveExportedPath(@CheckForNull String exportedPaths, @Nonnull EnvVars environment)  {
-        if (exportedPaths == null) return null;
-        if (!exportedPaths.contains("${")) {
-            return exportedPaths;
-        }    
-        
-        // Substitute parameters      
-        // TODO: optimize via parsing of string
-        String substitutedString = exportedPaths;
-        for (Map.Entry<String,String> entry : environment.entrySet()) {
-            substitutedString = substitutedString.replace("${" + entry.getKey() + "}", entry.getValue());
-        }
-             
-        return substitutedString;     
-    }
-    
-    public static String resolveExportedPath(@CheckForNull String exportedPaths, @Nonnull Node node) {
-        if (exportedPaths == null) return null;
-        if (!exportedPaths.contains("${")) {
-            return exportedPaths;
-        } 
-        
-        // Check node properties
-        String substitutedString = exportedPaths;
-        for (NodeProperty<?> entry : node.getNodeProperties()) {
-            substitutedString = substituteNodeProperty(substitutedString, entry);
-        }    
-        
-        // Substitute global variables
-        for (NodeProperty<?> entry : Hudson.getInstance().getGlobalNodeProperties()) {
-            substitutedString = substituteNodeProperty(substitutedString, entry);
-        } 
-        
-        return substitutedString;
-    }
-        
-    /**
-     * Substitutes string according to node property.
-     * @param macroString String to be substituted
-     * @param property Node property
-     * @return Substituted string
-     * @since 0.3
-     */
-    public static String substituteNodeProperty(@CheckForNull String macroString, @CheckForNull NodeProperty<?> property) {
-        // Get environment variables
-        if (property != null && property instanceof EnvironmentVariablesNodeProperty) {
-           EnvironmentVariablesNodeProperty prop = (EnvironmentVariablesNodeProperty)property;
-           return resolveExportedPath(macroString, prop.getEnvVars());
-        }
-        
-        //TODO: add support of other configuration entries or propagate environments
-        return macroString;
-    }
-    
+    private static final SimpleVariablesSubstitutionHelper HELPER = new VariablesSubstitutionHelper.SimpleVariablesSubstitutionHelper();
+         
     /**
      * Resolves tools installation directory using global variables.
      * @param inputString Input path with macro calls
@@ -102,13 +49,18 @@ public class EnvStringParseHelper {
      */
     public static void checkStringForMacro(@CheckForNull String macroName, @CheckForNull String inputString) 
             throws CustomToolException { 
-        if (inputString == null) {
-            return;
-        }
-        
-        // Check consistensy and throw errors
-        if (inputString.contains("${")) {
+        if (HELPER.hasMacros(inputString)) {
            throw new CustomToolException("Can't resolve all variables in "+macroName+" string. Final state: "+inputString);
         } 
+    }
+    
+    @Deprecated
+    public static String resolveExportedPath(@CheckForNull String exportedPaths, @Nonnull EnvVars environment)  {
+        return HELPER.resolveVariable(exportedPaths, environment);
+    }
+    
+    @Deprecated        
+    public static String resolveExportedPath(@CheckForNull String exportedPaths, @Nonnull Node node) {
+        return HELPER.resolveVariable(exportedPaths, node);
     }
 }
