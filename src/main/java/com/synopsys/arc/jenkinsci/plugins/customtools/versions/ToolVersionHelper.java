@@ -20,6 +20,7 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 import hudson.tools.ToolInstallation;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.Nonnull;
 
 /**
@@ -39,7 +40,7 @@ public class ToolVersionHelper {
     }
     
     public static String getDefaultVersionVariableName(String toolName) {
-        return toolName.toUpperCase().replaceAll("\\s+", "_");        
+        return toolName.toUpperCase(Locale.ENGLISH).replaceAll("\\s+", "_");        
     }
     
     public static ExtendedChoiceParameterDefinition getVersionDescr(String toolName) {

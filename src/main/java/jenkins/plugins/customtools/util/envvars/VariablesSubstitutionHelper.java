@@ -24,6 +24,8 @@ import hudson.slaves.NodeProperty;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.CheckForNull;
@@ -124,7 +126,7 @@ public abstract class VariablesSubstitutionHelper {
 
         @Override
         public String escapeVariableValue(String variableName, String rawValue) {
-            OutputStream str= new ByteArrayOutputStream();
+            final ByteArrayOutputStream str= new ByteArrayOutputStream();
             Properties prop = new Properties();
             prop.setProperty("TMP", rawValue);
             try {
@@ -135,8 +137,13 @@ public abstract class VariablesSubstitutionHelper {
                 return super.escapeVariableValue(variableName, rawValue);
             }
             
-            String res = str.toString().split("\n")[2].replaceFirst(".*TMP=", "").trim();
-            return res;
+            try {
+                String res = str.toString(StandardCharsets.UTF_8.name())
+                        .split("\n")[2].replaceFirst(".*TMP=", "").trim();
+                return res;
+            } catch (UnsupportedEncodingException ex) {
+                throw new IllegalStateException("UTF-8 encoding is not supported", ex);
+            }
         }       
     }
 }

@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Tool-specific environment variables injector.
@@ -38,7 +39,8 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
      * @deprecated Use {@link #create(java.lang.String)} instead.
      * This method will be removed in future versions.
      */
-    public static @Nonnull EnvVariablesInjector Create(String props) throws IOException {
+    @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
+    public static @Nonnull EnvVariablesInjector Create(@Nonnull String props) throws IOException {
         return create(props);
     }
     
@@ -66,6 +68,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
      * @deprecated Use {@link #injectVariables(hudson.EnvVars)} instead.
      * This method will be removed in future versions.
      */
+    @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
     public void Inject(EnvVars target) throws IOException {
         injectVariables(target);
     }
@@ -125,6 +128,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         * @deprecated Use {@link #injectVariables(hudson.EnvVars)} instead.
         * This method will be removed in future versions.
         */
+        @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
        public void Inject(@Nonnull EnvVars target) throws IOException {
            injectVariables(target);
        } 

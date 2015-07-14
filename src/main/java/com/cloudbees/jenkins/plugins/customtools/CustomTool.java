@@ -185,9 +185,11 @@ public class CustomTool extends ToolInstallation implements
      */
     public @Nonnull List<LabelSpecifics> getAppliedSpecifics(@Nonnull Node node) {
         List<LabelSpecifics> out = new LinkedList<LabelSpecifics>();
-        for (LabelSpecifics spec : labelSpecifics) {
-            if (spec.appliesTo(node)) {
-                out.add(spec);
+        if (labelSpecifics != null) {
+            for (LabelSpecifics spec : labelSpecifics) {
+                if (spec.appliesTo(node)) {
+                    out.add(spec);
+                }
             }
         }
         return out;
@@ -268,9 +270,14 @@ public class CustomTool extends ToolInstallation implements
                 
                 // Construct output paths
                 List<String> items = new LinkedList<String>();
-                parseLists(exportedPaths, items);
+                if (exportedPaths != null) {
+                    parseLists(exportedPaths, items);
+                }
                 for (LabelSpecifics spec : specs) {
-                   parseLists(spec.getExportedPaths(), items);
+                    final String exportedPathsFromSpec = spec.getExportedPaths();
+                    if (exportedPathsFromSpec != null) {
+                        parseLists(exportedPathsFromSpec, items);
+                    }
                 }
                              
                 // Resolve exported paths
