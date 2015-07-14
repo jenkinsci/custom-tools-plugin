@@ -24,11 +24,15 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionParameterDefinition;
 import hudson.cli.BuildCommand;
 import hudson.model.Executor;
+import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Queue;
 import hudson.model.Slave;
 import hudson.model.StringParameterDefinition;
+import hudson.model.StringParameterValue;
 import hudson.slaves.DumbSlave;
 import hudson.tools.CommandInstaller;
 import hudson.tools.InstallSourceProperty;
@@ -110,7 +114,7 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
     
     @Test
     @Bug(22923)
-    public void testSpicifyVersionInCLICall() throws Exception {           
+    public void testSpecifyVersionInCLICall() throws Exception {           
         // Setup the environment
         setupVersionedTool();
         DumbSlave slave = createSlave();
@@ -125,7 +129,21 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
                 
         // Check the job
         Queue.Item q = jenkins.getQueue().getItem(project);
-        Thread.sleep(5000);
-        q.getFuture();
+        if (q != null) {
+            Thread.sleep(5000);
+            q.getFuture();
+        } else { 
+            // it has benn already executed, we'll check it later
+        }
+        
+        FreeStyleBuild lastBuild = project.getLastBuild();
+        assertNotNull("The build has not been executed yet", lastBuild);
+        
+        ParametersAction params = lastBuild.getAction(ParametersAction.class);
+        assertNotNull(params);
+        ParameterValue parameterValue = params.getParameter("TOOL_VERSION");
+        assertNotNull("Tool version parameter has not been specified", parameterValue);
+        assertTrue("Wrong class of the tool version parameter", parameterValue instanceof StringParameterValue);
+        assertEquals("test", ((StringParameterValue)parameterValue).value);
     }
 }
