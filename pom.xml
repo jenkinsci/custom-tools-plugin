@@ -21,10 +21,8 @@
     </developer>
     <developer>
         <name>Oleg Nenashev</name>
-        <id>oleg_nenashev</id>
-        <organization>Synopsys, Inc.</organization>
-        <organizationUrl>http://www.synopsys.com</organizationUrl>          
-        <email>nenashev@synopsys.com; o.v.nenashev@gmail.com</email>
+        <id>oleg_nenashev</id>       
+        <email>o.v.nenashev@gmail.com</email>
     </developer>
   </developers>
 
