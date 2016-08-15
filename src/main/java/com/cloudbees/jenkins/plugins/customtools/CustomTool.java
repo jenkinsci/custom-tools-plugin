@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
