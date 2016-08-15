@@ -48,6 +48,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -253,7 +254,7 @@ public class CustomTool extends ToolInstallation implements
         }       
         final List<LabelSpecifics> specs = getAppliedSpecifics(node);
         
-        PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {          
+        PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {
             private void parseLists(String pathList, List<String> target) {
                 String[] items = pathList.split("\\s*,\\s*");              
                 for (String item : items) {
@@ -299,6 +300,11 @@ public class CustomTool extends ToolInstallation implements
                 File homeDir = new File(getHome());   
                 return new PathsList(outList, homeDir.getAbsolutePath());               
             };
+
+            @Override
+            public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+                // Do nothing
+            }
         });
               
         return pathsFound;
