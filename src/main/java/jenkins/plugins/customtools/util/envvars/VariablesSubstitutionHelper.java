@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Oleg Nenashev <o.v.nenashev@gmail.com>.
+ * Copyright 2014 Oleg Nenashev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 /**
  * Substitutes variables.
  * @since TODO
- * @author Oleg Nenashev <o.v.nenashev@gmail.com>
+ * @author Oleg Nenashev
  */
 public abstract class VariablesSubstitutionHelper {
     

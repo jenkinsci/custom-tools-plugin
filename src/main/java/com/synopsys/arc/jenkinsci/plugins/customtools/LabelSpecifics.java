@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc..
+ * Copyright 2013 Oleg Nenashev, Synopsys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Contains label-specific options.
- * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
+ * @author Oleg Nenashev
  * @since 0.3
  */
 public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> implements Serializable {
