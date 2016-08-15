@@ -20,6 +20,7 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
+import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 import hudson.AbortException;
 import hudson.EnvVars;
