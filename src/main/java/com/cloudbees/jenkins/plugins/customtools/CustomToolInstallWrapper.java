@@ -48,6 +48,7 @@ import java.util.Locale;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.plugins.customtools.util.JenkinsHelper;
 
 import net.sf.json.JSONObject;
 
@@ -87,7 +88,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         public @CheckForNull CustomTool toCustomTool() {
-            return ((CustomTool.DescriptorImpl)Hudson.getInstance().getDescriptor(CustomTool.class)).byName(name);
+            return ((CustomTool.DescriptorImpl)JenkinsHelper.getInstanceOrDie().getDescriptor(CustomTool.class)).byName(name);
         }
         
         public @Nonnull CustomTool toCustomToolValidated() throws CustomToolException {
@@ -259,7 +260,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             }
                         
             private EnvVars toEnvVars(String[] envs) throws IOException, InterruptedException {
-                EnvVars vars = node.toComputer().getEnvironment();
+                Computer computer = node.toComputer();
+                EnvVars vars = computer != null ? computer.getEnvironment() : new EnvVars();
                 for (String line : envs) {
                     vars.addLine(line);
                 }
@@ -353,7 +355,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         public CustomTool[] getInstallations() {
-            return Hudson.getInstance().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
+            return JenkinsHelper.getInstanceOrDie().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
         }
         
         @Override

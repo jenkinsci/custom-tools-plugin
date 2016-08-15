@@ -43,6 +43,7 @@ import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
+import jenkins.plugins.customtools.util.JenkinsHelper;
 
 
 public class CustomToolInstallerTest extends HudsonTestCase {
@@ -50,7 +51,7 @@ public class CustomToolInstallerTest extends HudsonTestCase {
     private DescriptorImpl tools;
 
     public void testSmoke() throws IOException, InterruptedException {
-        VirtualChannel channel = Hudson.getInstance().getChannel();
+        VirtualChannel channel = JenkinsHelper.getInstanceOrDie().getChannel();
         EnvVars envVars = new EnvVars();
         
         

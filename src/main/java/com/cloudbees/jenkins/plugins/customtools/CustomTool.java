@@ -22,6 +22,7 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -58,6 +59,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Oleg Nenashev
  * 
  */
+@SuppressFBWarnings(value = "SE_NO_SERIALVERSIONID",
+        justification = "Actually we do not send the class over the channel. Serial version ID is not required for XStream")
 public class CustomTool extends ToolInstallation implements
         NodeSpecific<CustomTool>, EnvironmentSpecific<CustomTool> {
 
@@ -92,7 +95,7 @@ public class CustomTool extends ToolInstallation implements
             @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
-        this.labelSpecifics = labelSpecifics;
+        this.labelSpecifics = labelSpecifics != null ? Arrays.copyOf(labelSpecifics, labelSpecifics.length) : null;
         this.toolVersion = toolVersion;
         this.additionalVariables = additionalVariables;
     }
@@ -114,7 +117,8 @@ public class CustomTool extends ToolInstallation implements
     }
     
     @Override
-    public @Nonnull String getHome() {
+    @CheckForNull
+    public String getHome() {
         return (correctedHome != null) ? correctedHome : super.getHome(); 
     }
         

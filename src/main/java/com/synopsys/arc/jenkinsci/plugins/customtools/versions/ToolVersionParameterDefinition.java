@@ -86,6 +86,9 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
             throws IllegalStateException {
         ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
                 getVersionsListSource().createValue(req, jo);
+        if (paramVal == null) {
+            return null;
+        }
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
 
@@ -93,19 +96,25 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
     public StringParameterValue createValue(StaplerRequest req) {
         ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
                 getVersionsListSource().createValue(req);
+        if (paramVal == null) {
+            return null;
+        }
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
 
     @Override
     public ParameterValue createValue(CLICommand command, String value) throws IOException, InterruptedException {
-        ParameterValue val = getDefaultParameterValue();
-        return new StringParameterValue(val.getName(), value);
+        final String paramName = getVersionsListSource().getName();
+        return new StringParameterValue(paramName, value);
     }
     
     @Override
     public ParameterValue getDefaultParameterValue() {
         ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
                 getVersionsListSource().getDefaultParameterValue();
+        if (paramVal == null) {
+            return null;
+        }
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
        

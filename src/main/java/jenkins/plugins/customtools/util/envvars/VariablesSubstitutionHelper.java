@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.plugins.customtools.util.JenkinsHelper;
 
 /**
  * Substitutes variables.
@@ -85,7 +86,7 @@ public abstract class VariablesSubstitutionHelper {
         }    
         
         // Substitute global variables
-        for (NodeProperty<?> entry : Hudson.getInstance().getGlobalNodeProperties()) {
+        for (NodeProperty<?> entry : JenkinsHelper.getInstanceOrDie().getGlobalNodeProperties()) {
             substitutedString = substituteNodeProperty(substitutedString, entry);
         } 
         
