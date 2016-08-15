@@ -72,5 +72,11 @@
       <artifactId>matrix-project</artifactId>
       <version>1.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>matrix-auth</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
