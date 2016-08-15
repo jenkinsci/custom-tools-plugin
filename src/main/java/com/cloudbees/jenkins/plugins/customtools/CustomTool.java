@@ -52,6 +52,8 @@ import javax.annotation.Nonnull;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 
 import org.jenkinsci.remoting.RoleChecker;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -169,8 +171,13 @@ public class CustomTool extends ToolInstallation implements
     
     //FIXME: just a stub
     @Deprecated
+    @Restricted(NoExternalUse.class)
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), 
+        final String toolHome = getHome();
+        if (toolHome == null) {
+            throw new IllegalStateException("Tool home must not be null at this stage, likely it's an API misusage");
+        }
+        return new CustomTool(getName(), toolHome, getProperties().toList(),
                 getExportedPaths(), getLabelSpecifics(), 
                 toolVersion, getAdditionalVariables());
     }
@@ -303,7 +310,11 @@ public class CustomTool extends ToolInstallation implements
                 }
                 
                 // Resolve home dir
-                File homeDir = new File(getHome());   
+                final String toolHome = getHome();
+                if (toolHome == null) {
+                    throw new IOException("Cannot retrieve Tool home directory. Should never happen ant this stage, please file a bug");
+                }
+                final File homeDir = new File(toolHome);
                 return new PathsList(outList, homeDir.getAbsolutePath());               
             };
 
