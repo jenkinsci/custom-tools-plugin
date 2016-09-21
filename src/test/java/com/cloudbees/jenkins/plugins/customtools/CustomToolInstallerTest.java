@@ -63,10 +63,10 @@ public class CustomToolInstallerTest {
         
         CustomTool installation = createTool("MyTrue");        
         
-        TaskListener listener = new StreamTaskListener(System.out);
-        installation = installation.forEnvironment(envVars).forNode(Computer.currentComputer().getNode(), listener);
+        TaskListener listener = new StreamTaskListener(System.out);;
+        installation = installation.forEnvironment(envVars).forNode(j.jenkins, listener);
         
-        if (!   new FilePath(channel, installation.getHome()).exists()) {
+        if (!new FilePath(channel, installation.getHome()).exists()) {
             throw new IOException(installation.getHome() + "doesn't exist!");
         }
     }
