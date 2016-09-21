@@ -21,7 +21,6 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.TaskListener;
 import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
-import hudson.model.Hudson;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.Builder;
 import hudson.tasks.Shell;
@@ -37,19 +36,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import org.jvnet.hudson.test.HudsonTestCase;
-
 import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 import jenkins.plugins.customtools.util.JenkinsHelper;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.Issue;
+import org.jvnet.hudson.test.JenkinsRule;
 
 
-public class CustomToolInstallerTest extends HudsonTestCase {
+public class CustomToolInstallerTest {
 
+    @Rule
+    public JenkinsRule j = new JenkinsRule();
+    
     private DescriptorImpl tools;
 
+    @Test
     public void testSmoke() throws IOException, InterruptedException {
         VirtualChannel channel = JenkinsHelper.getInstanceOrDie().getChannel();
         EnvVars envVars = new EnvVars();
@@ -65,12 +71,13 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         }
     }
 
+    @Test
     public void testBasicCase() throws Exception {
-        hudson.setNumExecutors(0);
-        createSlave();
-        tools = hudson.getDescriptorByType(CustomTool.DescriptorImpl.class);
+        j.jenkins.setNumExecutors(0);
+        j.createSlave();
+        tools = j.jenkins.getDescriptorByType(CustomTool.DescriptorImpl.class);
         tools.setInstallations(createTool("MyTrue"));
-        FreeStyleProject project = createFreeStyleProject();
+        FreeStyleProject project = j.createFreeStyleProject();
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         
         CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
@@ -79,18 +86,19 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         Builder b = new Shell("echo $PATH; mytrue");
         project.getBuildersList().add(b);
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
-        assertBuildStatusSuccess(build);
+        j.assertBuildStatusSuccess(build);
             
     }
     
-    // @Bug(19889). https://issues.jenkins-ci.org/browse/JENKINS-19889
     //TODO: Just a stub for testing. Make the test automatic
+    @Issue("JENKINS-19889")
+    @Ignore @Test
     public void testAdditionalVars() throws Exception {
-        hudson.setNumExecutors(0);
-        createSlave();
-        tools = hudson.getDescriptorByType(CustomTool.DescriptorImpl.class);
+        j.jenkins.setNumExecutors(0);
+        j.createSlave();
+        tools = j.jenkins.getDescriptorByType(CustomTool.DescriptorImpl.class);
         tools.setInstallations(createEnvPrinterTool("MyTrue", null, "TEST_ADD_VAR=test"));
-        FreeStyleProject project = createFreeStyleProject();
+        FreeStyleProject project = j.createFreeStyleProject();
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         
         CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
@@ -99,7 +107,7 @@ public class CustomToolInstallerTest extends HudsonTestCase {
         Builder b = new Shell("env; mytrue");
         project.getBuildersList().add(b);
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
-        assertBuildStatusSuccess(build);          
+        j.assertBuildStatusSuccess(build);          
     }
        
     public static CustomTool createTool(String name) throws IOException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc..
+ * Copyright 2013-2016 Oleg Nenashev, Synopsys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Implements a wrapper, which contains internal launcher call.
  * The wrapper aims <a href="https://issues.jenkins-ci.org/browse/JENKINS-19506">JENKINS-19506</a> issue.
- * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
+ * @author Oleg Nenashev
  * @since 0.4.1
  */
 public class CommandCallerInstaller extends StubWrapper {

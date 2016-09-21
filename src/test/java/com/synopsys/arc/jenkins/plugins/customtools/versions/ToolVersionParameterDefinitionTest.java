@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Oleg Nenashev <o.v.nenashev@gmail.com>.
+ * Copyright 2014-2016 Oleg Nenashev.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package com.synopsys.arc.jenkins.plugins.customtools.versions;
 
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
 import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
-import com.synopsys.arc.jenkins.plugins.customtools.util.CLICommandInvoker;
-import static com.synopsys.arc.jenkins.plugins.customtools.util.CLICommandInvoker.Matcher.succeeded;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionParameterDefinition;
 import hudson.cli.BuildCommand;
+import hudson.cli.CLICommandInvoker;
+import static hudson.cli.CLICommandInvoker.Matcher.succeeded;
 import hudson.model.Executor;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -44,17 +44,20 @@ import java.util.List;
 import jenkins.model.Jenkins;
 import org.hamcrest.MatcherAssert;
 import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
-import org.jvnet.hudson.test.HudsonTestCase;
-
+import org.jvnet.hudson.test.Issue;
+import org.jvnet.hudson.test.JenkinsRule;
 
 /**
- *
- * @author Oleg Nenashev <o.v.nenashev@gmail.com>
+ * Tests for the {@link ToolVersionParameterDefinition} class.
+ * @author Oleg Nenashev
  */
-public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
+public class ToolVersionParameterDefinitionTest {
+   
+    @Rule
+    public JenkinsRule j = new JenkinsRule();
     
     private CLICommandInvoker command;
     
@@ -66,7 +69,7 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
     );
     
     private void setupVersionedTool() throws Exception {
-        CustomTool.DescriptorImpl tools = hudson.getDescriptorByType(CustomTool.DescriptorImpl.class);
+        CustomTool.DescriptorImpl tools = j.jenkins.getDescriptorByType(CustomTool.DescriptorImpl.class);
         List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue", "./"));
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
@@ -76,7 +79,7 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
     }
     
     private FreeStyleProject setupJobWithVersionParam(Slave targetSlave) throws Exception {
-        FreeStyleProject project = createFreeStyleProject("foo");
+        FreeStyleProject project = j.createFreeStyleProject("foo");
         ParametersDefinitionProperty pdp = new ParametersDefinitionProperty(
                 new StringParameterDefinition("string", "defaultValue", "description"),
                 new ToolVersionParameterDefinition(TEST_TOOL_NAME));
@@ -88,22 +91,22 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
     }
     
     @Test
-    @Bug(22925)
+    @Issue("JENKINS-22925")
     public void testDefaultValueOnCLICall() throws Exception {           
         // Setup the environment
         setupVersionedTool();
-        DumbSlave slave = createSlave();
+        DumbSlave slave = j.createSlave();
         FreeStyleProject project = setupJobWithVersionParam(slave);
                
         // Create CLI & run command
-        command = new CLICommandInvoker(this, new BuildCommand());
+        CLICommandInvoker command = new CLICommandInvoker(j, new BuildCommand());
         final CLICommandInvoker.Result result = command
                 .authorizedTo(Jenkins.ADMINISTER)
                 .invokeWithArgs("foo","-p","string=foo");
         MatcherAssert.assertThat(result, succeeded());
                 
         // Check the job
-        Queue.Item q = jenkins.getQueue().getItem(project);
+        Queue.Item q = j.jenkins.getQueue().getItem(project);
         Thread.sleep(5000);
         
         // Check executors health after a timeout
@@ -113,22 +116,22 @@ public class ToolVersionParameterDefinitionTest extends HudsonTestCase {
     }
     
     @Test
-    @Bug(22923)
+    @Issue("JENKINS-22923")
     public void testSpecifyVersionInCLICall() throws Exception {           
         // Setup the environment
         setupVersionedTool();
-        DumbSlave slave = createSlave();
+        DumbSlave slave = j.createSlave();
         FreeStyleProject project = setupJobWithVersionParam(slave);  
         
         // Create CLI & run command
-        command = new CLICommandInvoker(this, new BuildCommand());
+        CLICommandInvoker command = new CLICommandInvoker(j, new BuildCommand());
         final CLICommandInvoker.Result result = command
                 .authorizedTo(Jenkins.ADMINISTER)
                 .invokeWithArgs("foo","-p","string=foo","-p","TOOL_VERSION=test");
         MatcherAssert.assertThat(result, succeeded());
                 
         // Check the job
-        Queue.Item q = jenkins.getQueue().getItem(project);
+        Queue.Item q = j.jenkins.getQueue().getItem(project);
         if (q != null) {
             Thread.sleep(5000);
             q.getFuture();
