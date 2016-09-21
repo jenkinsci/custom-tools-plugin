@@ -14,7 +14,7 @@
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Custom+Tools+Plugin</url>
 
   <properties>
-    <jenkins.version>1.580.3</jenkins.version>
+    <jenkins.version>1.609.3</jenkins.version>
     <java.level>6</java.level>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
