@@ -111,7 +111,7 @@ public class ToolVersionParameterDefinitionTest {
         
         // Check executors health after a timeout
         for (Executor exec : slave.toComputer().getExecutors()) {
-            Assert.assertTrue("Executor is dead: "+exec, exec.isAlive());
+            Assert.assertTrue("Executor is neither parked nor active: " + exec, exec.isActive() || exec.isParking());
         }
     }
     
