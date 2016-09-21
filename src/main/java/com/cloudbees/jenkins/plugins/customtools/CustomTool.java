@@ -27,7 +27,6 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.FilePath.FileCallable;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
@@ -49,9 +48,9 @@ import java.util.Map;
 import java.util.Arrays;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.MasterToSlaveFileCallable;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 
-import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -267,7 +266,7 @@ public class CustomTool extends ToolInstallation implements
         }       
         final List<LabelSpecifics> specs = getAppliedSpecifics(node);
         
-        PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {
+        PathsList pathsFound = homePath.act(new MasterToSlaveFileCallable<PathsList>() {
             private void parseLists(String pathList, List<String> target) {
                 String[] items = pathList.split("\\s*,\\s*");              
                 for (String item : items) {
@@ -317,11 +316,6 @@ public class CustomTool extends ToolInstallation implements
                 final File homeDir = new File(toolHome);
                 return new PathsList(outList, homeDir.getAbsolutePath());               
             };
-
-            @Override
-            public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-                // Do nothing
-            }
         });
               
         return pathsFound;
