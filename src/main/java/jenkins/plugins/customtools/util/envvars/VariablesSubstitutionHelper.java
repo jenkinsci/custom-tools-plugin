@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Oleg Nenashev <o.v.nenashev@gmail.com>.
+ * Copyright 2014 Oleg Nenashev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,18 @@ import hudson.slaves.NodeProperty;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.plugins.customtools.util.JenkinsHelper;
 
 /**
  * Substitutes variables.
  * @since TODO
- * @author Oleg Nenashev <o.v.nenashev@gmail.com>
+ * @author Oleg Nenashev
  */
 public abstract class VariablesSubstitutionHelper {
     
@@ -83,7 +86,7 @@ public abstract class VariablesSubstitutionHelper {
         }    
         
         // Substitute global variables
-        for (NodeProperty<?> entry : Hudson.getInstance().getGlobalNodeProperties()) {
+        for (NodeProperty<?> entry : JenkinsHelper.getInstanceOrDie().getGlobalNodeProperties()) {
             substitutedString = substituteNodeProperty(substitutedString, entry);
         } 
         
@@ -124,7 +127,7 @@ public abstract class VariablesSubstitutionHelper {
 
         @Override
         public String escapeVariableValue(String variableName, String rawValue) {
-            OutputStream str= new ByteArrayOutputStream();
+            final ByteArrayOutputStream str= new ByteArrayOutputStream();
             Properties prop = new Properties();
             prop.setProperty("TMP", rawValue);
             try {
@@ -135,8 +138,13 @@ public abstract class VariablesSubstitutionHelper {
                 return super.escapeVariableValue(variableName, rawValue);
             }
             
-            String res = str.toString().split("\n")[2].replaceFirst(".*TMP=", "").trim();
-            return res;
+            try {
+                String res = str.toString("UTF-8")
+                        .split("\n")[2].replaceFirst(".*TMP=", "").trim();
+                return res;
+            } catch (UnsupportedEncodingException ex) {
+                throw new IllegalStateException("UTF-8 encoding is not supported", ex);
+            }
         }       
     }
 }

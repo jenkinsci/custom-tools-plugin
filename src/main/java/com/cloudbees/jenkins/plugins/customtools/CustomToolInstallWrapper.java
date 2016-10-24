@@ -23,6 +23,7 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
@@ -43,9 +44,11 @@ import hudson.tasks.BuildWrapperDescriptor;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.plugins.customtools.util.JenkinsHelper;
 
 import net.sf.json.JSONObject;
 
@@ -85,7 +88,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         public @CheckForNull CustomTool toCustomTool() {
-            return ((CustomTool.DescriptorImpl)Hudson.getInstance().getDescriptor(CustomTool.class)).byName(name);
+            return ((CustomTool.DescriptorImpl)JenkinsHelper.getInstanceOrDie().getDescriptor(CustomTool.class)).byName(name);
         }
         
         public @Nonnull CustomTool toCustomToolValidated() throws CustomToolException {
@@ -197,9 +200,9 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             final PathsList installedPaths = installed.getPaths(node);          
             installed.correctHome(installedPaths);
             paths.add(installedPaths);
-            if (installed.hasAdditionalVariables()) {
-                additionalVarInjectors.add(
-                   EnvVariablesInjector.Create(installed.getAdditionalVariables()));
+            final String additionalVars = installed.getAdditionalVariables();
+            if (additionalVars != null) {
+                additionalVarInjectors.add(EnvVariablesInjector.create(additionalVars));
             }
 
             // Handle label-specific options of the tool
@@ -208,14 +211,15 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                     continue;
                 }
                 CustomToolsLogger.logMessage(listener, installed.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
-                               
-                if (spec.hasAdditionalVars()) {
-                    additionalVarInjectors.add(EnvVariablesInjector.Create(spec.getAdditionalVars()));
+                    
+                final String additionalLabelSpecificVars = spec.getAdditionalVars();
+                if (additionalLabelSpecificVars != null) {
+                    additionalVarInjectors.add(EnvVariablesInjector.create(additionalLabelSpecificVars));
                 }
             }
             
             CustomToolsLogger.logMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
-            String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase() : installed.getName()) +"_HOME";
+            String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase(Locale.ENGLISH) : installed.getName()) +"_HOME";
             CustomToolsLogger.logMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
             homes.put(homeDirVarName, installed.getHome());
         }
@@ -256,7 +260,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             }
                         
             private EnvVars toEnvVars(String[] envs) throws IOException, InterruptedException {
-                EnvVars vars = node.toComputer().getEnvironment();
+                Computer computer = node.toComputer();
+                EnvVars vars = computer != null ? computer.getEnvironment() : new EnvVars();
                 for (String line : envs) {
                     vars.addLine(line);
                 }
@@ -269,6 +274,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      * @deprecated The method is deprecated. It will be removed in future versions.
      * @throws CustomToolException
      */
+    @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
     public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) 
             throws CustomToolException  {
         checkVersions(tool, listener, buildEnv, node, target);
@@ -297,7 +303,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             CustomToolsLogger.logMessage(listener, tool.getName(), "Version "+version.getActualVersion()+" has been specified by "+version.getVersionSource());
             
             // Override default versions
-            if (version.getVersionSource().equals(ToolVersion.DEFAULTS_SOURCE)) {            
+            final String versionSource = version.getVersionSource();
+            if (versionSource != null && versionSource.equals(ToolVersion.DEFAULTS_SOURCE)) {            
                 String envStr = version.getVariableName()+"="+version.getDefaultVersion();
                 target.addLine(envStr);
                 buildEnv.addLine(envStr);
@@ -348,7 +355,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         public CustomTool[] getInstallations() {
-            return Hudson.getInstance().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
+            return JenkinsHelper.getInstanceOrDie().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
         }
         
         @Override

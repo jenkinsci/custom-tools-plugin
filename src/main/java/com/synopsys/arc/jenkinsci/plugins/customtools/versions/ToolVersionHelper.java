@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc..
+ * Copyright 2013 Oleg Nenashev, Synopsys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 import hudson.tools.ToolInstallation;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import javax.annotation.Nonnull;
 
 /**
- * Provides helper for toll versions handling.
- * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
+ * Provides helper for tool version handling.
+ * @author Oleg Nenashev
  * @since 0.4
  */
 public class ToolVersionHelper {
@@ -39,7 +40,7 @@ public class ToolVersionHelper {
     }
     
     public static String getDefaultVersionVariableName(String toolName) {
-        return toolName.toUpperCase().replaceAll("\\s+", "_");        
+        return toolName.toUpperCase(Locale.ENGLISH).replaceAll("\\s+", "_");        
     }
     
     public static ExtendedChoiceParameterDefinition getVersionDescr(String toolName) {

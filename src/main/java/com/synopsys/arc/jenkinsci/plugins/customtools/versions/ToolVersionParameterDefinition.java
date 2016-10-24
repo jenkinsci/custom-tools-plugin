@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc..
+ * Copyright 2013 Oleg Nenashev, Synopsys Inc..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Implements "Tool version" parameter.
- * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
+ * @author Oleg Nenashev
  * @since 0.4
  */
 public class ToolVersionParameterDefinition extends ParameterDefinition {
@@ -86,6 +86,9 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
             throws IllegalStateException {
         ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
                 getVersionsListSource().createValue(req, jo);
+        if (paramVal == null) {
+            return null;
+        }
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
 
@@ -93,19 +96,25 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
     public StringParameterValue createValue(StaplerRequest req) {
         ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
                 getVersionsListSource().createValue(req);
+        if (paramVal == null) {
+            return null;
+        }
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
 
     @Override
     public ParameterValue createValue(CLICommand command, String value) throws IOException, InterruptedException {
-        ParameterValue val = getDefaultParameterValue();
-        return new StringParameterValue(val.getName(), value);
+        final String paramName = getVersionsListSource().getName();
+        return new StringParameterValue(paramName, value);
     }
     
     @Override
     public ParameterValue getDefaultParameterValue() {
         ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue) 
                 getVersionsListSource().getDefaultParameterValue();
+        if (paramVal == null) {
+            return null;
+        }
         return new StringParameterValue(paramVal.getName(), paramVal.value);
     }
        

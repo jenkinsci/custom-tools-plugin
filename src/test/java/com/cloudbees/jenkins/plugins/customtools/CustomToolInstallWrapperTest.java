@@ -1,6 +1,5 @@
 /*
- * Copyright 2012, CloudBees Inc.
- * Copyright 2013, Synopsys Inc., Oleg Nenashev
+ * Copyright 2012-2016, CloudBees Inc., Synopsys Inc., Oleg Nenashev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,22 +28,28 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
-import org.jvnet.hudson.test.Bug;
-import org.jvnet.hudson.test.HudsonTestCase;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.Issue;
+import org.jvnet.hudson.test.JenkinsRule;
 
 /**
  * Contains tests for {@link CustomToolInstallWrapper}.
  * @author rcampbell
- * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
+ * @author Oleg Nenashev
  */
-public class CustomToolInstallWrapperTest extends HudsonTestCase {
+public class CustomToolInstallWrapperTest {
+    
+    @Rule
+    public JenkinsRule j = new JenkinsRule();
     
     private static final String NON_EXISTENT_TOOL = "non-existent";
         
     /**
      * Inserts {@link CustomToolInstallWrapper} after {@link StubWrapper}.
-     * @throws Exception 
+     * @throws Exception Test failure
      */
+    @Test
     public void testNestedWrapper() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(2);
         wrappers.add(new StubWrapper());
@@ -54,8 +59,9 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
        
     /**
      * Inserts {@link StubWrapper} after {@link CustomToolInstallWrapper}.
-     * @throws Exception 
+     * @throws Exception Test failure
      */
+    @Test
     public void testNestedWrapperReverse() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(2);
         wrappers.add(setupCustomToolsWrapper());
@@ -68,9 +74,10 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
     /**
      * Tests custom tools with wrapper, which calls wrapper without
      * specifying of envs.
-     * @throws Exception 
+     * @throws Exception Test failure
      */
-    //@Bug(19506))
+    @Test
+    @Issue("JENKINS-19506")
     public void testNestedLauncherCalls() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(2);
         wrappers.add(new CommandCallerInstaller());  
@@ -78,7 +85,8 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
         nestedWrapperTestImpl(wrappers, false);
     }
     
-    @Bug(20560)
+    @Test
+    @Issue("JENKINS-20560")
     public void testEmptyToolsList() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(0); 
         wrappers.add(new CommandCallerInstaller());
@@ -86,9 +94,9 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
         nestedWrapperTestImpl(wrappers, false);
     }
     
-    @Bug(0)
+    @Test
     public void testDeletedTool() throws Exception {
-        FreeStyleProject project = createFreeStyleProject();
+        FreeStyleProject project = j.createFreeStyleProject();
         
         CustomToolInstallWrapper.SelectedTool[] tools = 
                 new CustomToolInstallWrapper.SelectedTool[] { 
@@ -99,8 +107,8 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
                 new CustomToolInstallWrapper(tools, MulticonfigWrapperOptions.DEFAULT, false));
         
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
-        assertBuildStatus(Result.FAILURE, build.get());
-        assertLogContains( 
+        j.assertBuildStatus(Result.FAILURE, build.get());
+        j.assertLogContains( 
                 Messages.CustomTool_GetToolByName_ErrorMessage(NON_EXISTENT_TOOL), build.get());
     }
     
@@ -110,11 +118,11 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
      * It also expects existence of {@link StubWrapper} in the wrappers list.
      */
     private void nestedWrapperTestImpl(List<BuildWrapper> wrappers, boolean checkEnvironment) throws Exception {      
-        hudson.setNumExecutors(0);
-        createSlave();
+        j.jenkins.setNumExecutors(0);
+        j.createSlave();
         
         // Create test project
-        FreeStyleProject project = createFreeStyleProject();        
+        FreeStyleProject project = j.createFreeStyleProject();        
         project.getBuildWrappersList().addAll(wrappers);   
         
         if (checkEnvironment) {
@@ -123,12 +131,12 @@ public class CustomToolInstallWrapperTest extends HudsonTestCase {
         }
         
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
-        assertBuildStatusSuccess(build);
+        j.assertBuildStatusSuccess(build);
     }
     
     private CustomToolInstallWrapper setupCustomToolsWrapper() 
             throws IOException {
-        CustomTool.DescriptorImpl tools = hudson.getDescriptorByType(CustomTool.DescriptorImpl.class);
+        CustomTool.DescriptorImpl tools = j.jenkins.getDescriptorByType(CustomTool.DescriptorImpl.class);
         tools.setInstallations(CustomToolInstallerTest.createTool("MyTrue"));
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         

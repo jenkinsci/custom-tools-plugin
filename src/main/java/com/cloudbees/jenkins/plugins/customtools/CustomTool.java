@@ -20,12 +20,13 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
+import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.FilePath.FileCallable;
 import hudson.model.EnvironmentSpecific;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
@@ -44,10 +45,14 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.MasterToSlaveFileCallable;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -56,6 +61,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Oleg Nenashev
  * 
  */
+@SuppressFBWarnings(value = "SE_NO_SERIALVERSIONID",
+        justification = "Actually we do not send the class over the channel. Serial version ID is not required for XStream")
 public class CustomTool extends ToolInstallation implements
         NodeSpecific<CustomTool>, EnvironmentSpecific<CustomTool> {
 
@@ -90,7 +97,7 @@ public class CustomTool extends ToolInstallation implements
             @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
-        this.labelSpecifics = labelSpecifics;
+        this.labelSpecifics = labelSpecifics != null ? Arrays.copyOf(labelSpecifics, labelSpecifics.length) : null;
         this.toolVersion = toolVersion;
         this.additionalVariables = additionalVariables;
     }
@@ -112,7 +119,8 @@ public class CustomTool extends ToolInstallation implements
     }
     
     @Override
-    public @Nonnull String getHome() {
+    @CheckForNull
+    public String getHome() {
         return (correctedHome != null) ? correctedHome : super.getHome(); 
     }
         
@@ -162,8 +170,13 @@ public class CustomTool extends ToolInstallation implements
     
     //FIXME: just a stub
     @Deprecated
+    @Restricted(NoExternalUse.class)
     public CustomTool forBuildProperties(Map<JobPropertyDescriptor,JobProperty> properties) {
-        return new CustomTool(getName(), getHome(), getProperties().toList(), 
+        final String toolHome = getHome();
+        if (toolHome == null) {
+            throw new IllegalStateException("Tool home must not be null at this stage, likely it's an API misusage");
+        }
+        return new CustomTool(getName(), toolHome, getProperties().toList(),
                 getExportedPaths(), getLabelSpecifics(), 
                 toolVersion, getAdditionalVariables());
     }
@@ -185,9 +198,11 @@ public class CustomTool extends ToolInstallation implements
      */
     public @Nonnull List<LabelSpecifics> getAppliedSpecifics(@Nonnull Node node) {
         List<LabelSpecifics> out = new LinkedList<LabelSpecifics>();
-        for (LabelSpecifics spec : labelSpecifics) {
-            if (spec.appliesTo(node)) {
-                out.add(spec);
+        if (labelSpecifics != null) {
+            for (LabelSpecifics spec : labelSpecifics) {
+                if (spec.appliesTo(node)) {
+                    out.add(spec);
+                }
             }
         }
         return out;
@@ -251,7 +266,7 @@ public class CustomTool extends ToolInstallation implements
         }       
         final List<LabelSpecifics> specs = getAppliedSpecifics(node);
         
-        PathsList pathsFound = homePath.act(new FileCallable<PathsList>() {          
+        PathsList pathsFound = homePath.act(new MasterToSlaveFileCallable<PathsList>() {
             private void parseLists(String pathList, List<String> target) {
                 String[] items = pathList.split("\\s*,\\s*");              
                 for (String item : items) {
@@ -268,9 +283,14 @@ public class CustomTool extends ToolInstallation implements
                 
                 // Construct output paths
                 List<String> items = new LinkedList<String>();
-                parseLists(exportedPaths, items);
+                if (exportedPaths != null) {
+                    parseLists(exportedPaths, items);
+                }
                 for (LabelSpecifics spec : specs) {
-                   parseLists(spec.getExportedPaths(), items);
+                    final String exportedPathsFromSpec = spec.getExportedPaths();
+                    if (exportedPathsFromSpec != null) {
+                        parseLists(exportedPathsFromSpec, items);
+                    }
                 }
                              
                 // Resolve exported paths
@@ -289,7 +309,11 @@ public class CustomTool extends ToolInstallation implements
                 }
                 
                 // Resolve home dir
-                File homeDir = new File(getHome());   
+                final String toolHome = getHome();
+                if (toolHome == null) {
+                    throw new IOException("Cannot retrieve Tool home directory. Should never happen ant this stage, please file a bug");
+                }
+                final File homeDir = new File(toolHome);
                 return new PathsList(outList, homeDir.getAbsolutePath());               
             };
         });

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc..
+ * Copyright 2013 Oleg Nenashev, Synopsys Inc..
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,14 @@ import javax.annotation.Nonnull;
 
 /**
  * A stub for a tool versions.
- * @author Oleg Nenashev <nenashev@synopsys.com>, Synopsys Inc.
+ * @author Oleg Nenashev
  * @since 0.4
  */
 public class ToolVersion implements Serializable {
     private String variableName;
     private @CheckForNull String defaultVersion;
-    private String actualVersion;
-    private String versionSource;
+    private @CheckForNull String actualVersion;
+    private @CheckForNull String versionSource;
     public static final String DEFAULTS_SOURCE = "defaults";
 
     /**
@@ -45,12 +45,13 @@ public class ToolVersion implements Serializable {
         this(variableName, defaultVersion, null, null);
     }
     
-    private ToolVersion (@Nonnull ToolVersion defaultVersion, @Nonnull String actualVersion, 
-            @Nonnull String versionSource) {
+    private ToolVersion (@Nonnull ToolVersion defaultVersion, @CheckForNull String actualVersion, 
+            @CheckForNull String versionSource) {
         this(defaultVersion.getVariableName(), defaultVersion.getDefaultVersion(), actualVersion, versionSource);
     }
 
-    public ToolVersion(String variableName, String defaultVersion, String actualVersion, String versionSource) {
+    public ToolVersion(String variableName, @CheckForNull String defaultVersion, 
+            @CheckForNull String actualVersion, @CheckForNull String versionSource) {
         this.variableName = variableName;
         this.defaultVersion = defaultVersion;
         this.actualVersion = actualVersion;
@@ -65,7 +66,7 @@ public class ToolVersion implements Serializable {
         return defaultVersion;
     }
         
-    public void setDefaultVersion(String defaultVersion) {
+    public void setDefaultVersion(@CheckForNull String defaultVersion) {
         this.defaultVersion = defaultVersion;
     }
 
@@ -73,11 +74,11 @@ public class ToolVersion implements Serializable {
         return variableName;
     }
 
-    public String getActualVersion() {
+    public @CheckForNull String getActualVersion() {
         return actualVersion;
     }
 
-    public String getVersionSource() {
+    public @CheckForNull String getVersionSource() {
         return versionSource;
     }
     
@@ -129,6 +130,6 @@ public class ToolVersion implements Serializable {
 
     @Override
     public String toString() {
-        return defaultVersion;
+        return defaultVersion != null ? defaultVersion : "null";
     }    
 }
