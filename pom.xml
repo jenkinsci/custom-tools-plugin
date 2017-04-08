@@ -9,7 +9,7 @@
   <groupId>com.cloudbees.jenkins.plugins</groupId>
   <artifactId>custom-tools-plugin</artifactId>
   <name>Jenkins Custom Tools Plugin</name>
-  <version>0.4.5-SNAPSHOT</version>
+  <version>0.5</version>
   <packaging>hpi</packaging>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Custom+Tools+Plugin</url>
 
@@ -44,6 +44,7 @@
     <connection>scm:git:ssh://github.com/jenkinsci/customtoosl-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/customtools-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/customtools-plugin</url>
+    <tag>custom-tools-plugin-0.5</tag>
   </scm>
 
   <!-- get every artifact through maven.glassfish.org, which proxies all the artifacts that we need -->
