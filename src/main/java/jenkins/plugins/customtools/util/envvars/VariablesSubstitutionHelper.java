@@ -25,12 +25,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import jenkins.plugins.customtools.util.JenkinsHelper;
+
+import jenkins.model.Jenkins;
 
 /**
  * Substitutes variables.
@@ -86,7 +86,7 @@ public abstract class VariablesSubstitutionHelper {
         }    
         
         // Substitute global variables
-        for (NodeProperty<?> entry : JenkinsHelper.getInstanceOrDie().getGlobalNodeProperties()) {
+        for (NodeProperty<?> entry : Jenkins.getActiveInstance().getGlobalNodeProperties()) {
             substitutedString = substituteNodeProperty(substitutedString, entry);
         } 
         
