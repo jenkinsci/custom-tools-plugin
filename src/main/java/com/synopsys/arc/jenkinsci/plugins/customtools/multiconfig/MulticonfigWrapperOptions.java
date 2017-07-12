@@ -15,15 +15,20 @@
  */
 package com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig;
 
+import hudson.Extension;
 import hudson.matrix.MatrixProject;
 import java.io.Serializable;
+
+import hudson.model.Describable;
+import hudson.model.Descriptor;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Provides specific options for {@link MatrixProject}s.
  * @author Oleg Nenashev
  */
-public class MulticonfigWrapperOptions implements Serializable {
+public class MulticonfigWrapperOptions implements Serializable, Describable<MulticonfigWrapperOptions> {
     private final boolean skipMasterInstallation;
     public static final MulticonfigWrapperOptions DEFAULT = new MulticonfigWrapperOptions(false);
 
@@ -34,5 +39,20 @@ public class MulticonfigWrapperOptions implements Serializable {
 
     public boolean isSkipMasterInstallation() {
         return skipMasterInstallation;
-    }    
+    }
+
+    @Override
+    public Descriptor<MulticonfigWrapperOptions> getDescriptor() {
+        return new MulticonfigWrapperOptions.DescriptorImpl();
+    }
+
+    @Symbol("customToolOptions")
+    @Extension
+    public static class DescriptorImpl extends Descriptor<MulticonfigWrapperOptions> {
+
+        @Override
+        public String getDisplayName() {
+            return "MultiConfig wrapper options";
+        }
+    }
 }

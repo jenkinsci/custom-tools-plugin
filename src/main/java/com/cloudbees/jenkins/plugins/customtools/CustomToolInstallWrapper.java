@@ -24,20 +24,11 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import hudson.AbortException;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.Launcher;
-import hudson.Proc;
+import hudson.*;
 import hudson.matrix.MatrixBuild;
-import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Computer;
-import hudson.model.Descriptor;
-import hudson.model.Hudson;
-import hudson.model.Node;
+import hudson.model.*;
 import hudson.model.Run.RunnerAbortedException;
+import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 
@@ -50,9 +41,12 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.plugins.customtools.util.JenkinsHelper;
 
+import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -62,7 +56,27 @@ import org.kohsuke.stapler.StaplerRequest;
  * @author Oleg Nenashev
  *
  */
-public class CustomToolInstallWrapper extends BuildWrapper {
+public class CustomToolInstallWrapper extends BuildWrapper implements SimpleBuildStep {
+
+    @Override
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+
+    }
+
+    @Override
+    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
+        return false;
+    }
+
+    @Override
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+        return false;
+    }
+
+    @Override
+    public BuildStepMonitor getRequiredMonitorService() {
+        return null;
+    }
 
     /**
      * Ceremony needed to satisfy NoStaplerConstructionException:
@@ -102,13 +116,21 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }
     
     private @Nonnull SelectedTool[] selectedTools = new SelectedTool[0];
-    private final @CheckForNull MulticonfigWrapperOptions multiconfigOptions;    
-    private final boolean convertHomesToUppercase;
+    private @CheckForNull MulticonfigWrapperOptions multiconfigOptions = MulticonfigWrapperOptions.DEFAULT;
+    private boolean convertHomesToUppercase = false;
     
     @DataBoundConstructor
-    public CustomToolInstallWrapper(SelectedTool[] selectedTools, MulticonfigWrapperOptions multiconfigOptions, boolean convertHomesToUppercase) {
+    public CustomToolInstallWrapper(SelectedTool[] selectedTools) {
         this.selectedTools = (selectedTools != null) ? selectedTools : new SelectedTool[0];
+    }
+
+    @DataBoundSetter
+    public void setMulticonfigOptions (MulticonfigWrapperOptions multiconfigOptions){
         this.multiconfigOptions = (multiconfigOptions != null) ? multiconfigOptions : MulticonfigWrapperOptions.DEFAULT;
+    }
+
+    @DataBoundSetter
+    public void setConvertHomesToUppercase (boolean convertHomesToUppercase) {
         this.convertHomesToUppercase = convertHomesToUppercase;
     }
     
@@ -311,7 +333,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             }
         }  
     }
-    
+
     @Override
     public Descriptor<BuildWrapper> getDescriptor() {
         return DESCRIPTOR;
@@ -338,8 +360,9 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
+    @Symbol("installCustomTool")
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
-        
+
         public DescriptorImpl() {
             super(CustomToolInstallWrapper.class);
         }
