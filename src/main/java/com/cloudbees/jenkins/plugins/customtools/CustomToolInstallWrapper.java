@@ -18,14 +18,10 @@ package com.cloudbees.jenkins.plugins.customtools;
 
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolsLogger;
 import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
-import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
-import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
-import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.*;
-import hudson.matrix.MatrixBuild;
 import hudson.model.*;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.tasks.BuildStepMonitor;
@@ -33,9 +29,6 @@ import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -177,120 +170,7 @@ public class CustomToolInstallWrapper extends BuildWrapper implements SimpleBuil
     public Launcher decorateLauncher(AbstractBuild build, final Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException,
             RunnerAbortedException {
-        
-        EnvVars buildEnv = build.getEnvironment(listener); 
-        final EnvVars homes = new EnvVars();
-        final EnvVars versions = new EnvVars();
-        
-        final PathsList paths = new PathsList();
-        final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
-        
-        // Handle multi-configuration build
-        if (build instanceof MatrixBuild) {  
-            CustomToolsLogger.logMessage(listener, "Skipping installation of tools at the master job");
-            if (getMulticonfigOptions().isSkipMasterInstallation()) {
-                return launcher;
-            }
-        }
-        
-        // Each tool can export zero or many directories to the PATH
-        final Node node =  Computer.currentComputer().getNode();
-        if (node == null) {
-            throw new CustomToolException("Cannot install tools on the deleted node");
-        }
-        
-        for (SelectedTool selectedToolName : selectedTools) {
-            CustomTool tool = selectedToolName.toCustomToolValidated();            
-            CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
-            
-            // Check versioning
-            checkVersions(tool, listener, buildEnv, node, versions);
-            
-            // This installs the tool if necessary
-            CustomTool installed = tool
-                    .forNode(node, listener)
-                    .forEnvironment(buildEnv)
-                    .forBuildProperties(build.getProject().getProperties());
-            
-            try {
-                installed.check();
-            } catch (CustomToolException ex) {
-                throw new AbortException(ex.getMessage());
-            }
-            
-            // Handle global options of the tool      
-            //TODO: convert to label specifics?
-            final PathsList installedPaths = installed.getPaths(node);          
-            installed.correctHome(installedPaths);
-            paths.add(installedPaths);
-            final String additionalVars = installed.getAdditionalVariables();
-            if (additionalVars != null) {
-                additionalVarInjectors.add(EnvVariablesInjector.create(additionalVars));
-            }
-
-            // Handle label-specific options of the tool
-            for (LabelSpecifics spec : installed.getLabelSpecifics()) {              
-                if (!spec.appliesTo(node)) {
-                    continue;
-                }
-                CustomToolsLogger.logMessage(listener, installed.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
-                    
-                final String additionalLabelSpecificVars = spec.getAdditionalVars();
-                if (additionalLabelSpecificVars != null) {
-                    additionalVarInjectors.add(EnvVariablesInjector.create(additionalLabelSpecificVars));
-                }
-            }
-            
-            CustomToolsLogger.logMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
-            String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase(Locale.ENGLISH) : installed.getName()) +"_HOME";
-            CustomToolsLogger.logMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
-            homes.put(homeDirVarName, installed.getHome());
-        }
-
-        return new Launcher.DecoratedLauncher(launcher) {
-            @Override
-            public Proc launch(ProcStarter starter) throws IOException {           
-                EnvVars vars;
-                try { // Dirty hack, which allows to avoid NPEs in Launcher::envs()
-                    vars = toEnvVars(starter.envs());
-                } catch (NullPointerException npe) {
-                    vars = new EnvVars();
-                } catch (InterruptedException x) {
-                    throw new IOException(x);
-                }
-                 
-                // Inject paths
-                final String injectedPaths = paths.toListString();              
-                if (injectedPaths != null) {              
-                    vars.override("PATH+", injectedPaths);
-                }
-                               
-                // Inject additional variables
-                vars.putAll(homes);
-                vars.putAll(versions);
-                for (EnvVariablesInjector injector : additionalVarInjectors) {
-                    injector.Inject(vars);
-                }
-                           
-                // Override paths to prevent JENKINS-20560              
-                if (vars.containsKey("PATH")) {
-                    final String overallPaths=vars.get("PATH");
-                    vars.remove("PATH");
-                    vars.put("PATH+", overallPaths);
-                }
-                
-                return getInner().launch(starter.envs(vars));
-            }
-                        
-            private EnvVars toEnvVars(String[] envs) throws IOException, InterruptedException {
-                Computer computer = node.toComputer();
-                EnvVars vars = computer != null ? computer.getEnvironment() : new EnvVars();
-                for (String line : envs) {
-                    vars.addLine(line);
-                }
-                return vars;
-            }
-        };
+        return CustomToolsLauncherDecorator.decorate(this, build, launcher, listener);
     }
     
     /**

@@ -32,6 +32,7 @@ import hudson.tools.ToolInstallation;
 import hudson.util.StreamTaskListener;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -63,7 +64,7 @@ public class CustomToolInstallerTest {
         
         CustomTool installation = createTool("MyTrue");        
         
-        TaskListener listener = new StreamTaskListener(System.out);;
+        TaskListener listener = new StreamTaskListener(System.out, Charset.defaultCharset());;
         installation = installation.forEnvironment(envVars).forNode(j.jenkins, listener);
         
         if (!new FilePath(channel, installation.getHome()).exists()) {
