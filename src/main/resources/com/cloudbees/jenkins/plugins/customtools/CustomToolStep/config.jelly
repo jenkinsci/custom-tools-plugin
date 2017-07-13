@@ -1,0 +1,38 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:entry title="" description="">
+      <f:repeatable name="selectedTools" var="selectedTool" items="${instance.selectedTools}"
+        add="${%Add Tool}" header="Tools to install">
+        <j:set var="toolDescriptor" value="${descriptor}" />
+        <table width="100%">
+           <f:entry title="${%Tool selection}">
+             <select class="setting-input" name="selectedTools.name">
+              <j:forEach var="installation" items="${descriptor.installations}">
+                <f:option selected="${installation==selectedTool}"
+                          value="${installation}">${installation}</f:option>
+              </j:forEach>
+             </select>
+            <div align="right">
+              <f:repeatableDeleteButton value="${%Delete tool}"/>
+            </div>
+          </f:entry>
+        </table>        
+      </f:repeatable>      
+      <table width="100%">                
+          <f:optionalBlock name="multiconfigOptions" 
+                         title="${%Multi-configuration jobs specific parameters}" checked="${instance.hasMulticonfigOptions()}"
+                         help="/plugin/custom-tools-plugin/CustomToolInstallWrapper/help-multiconfigOptions.html">
+            <f:entry help="/plugin/custom-tools-plugin/CustomToolInstallWrapper/help-skipInstallationOnMaster.html">
+                 <f:checkbox title="Don't install tools at the master job" field="skipInstallationOnMaster" checked="${instance.multiconfigOptions.isSkipMasterInstallation()}"/>
+            </f:entry>
+        </f:optionalBlock> 
+      </table>
+      <table width="100%">
+        <f:entry field="convertHomesToUppercase">
+          <f:checkbox title="${%Convert #ToolName_HOME variables to the upper-case}" checked="${instance.isConvertHomesToUppercase()}"/>
+        </f:entry>
+      </table>
+  </f:entry>
+ 
+</j:jelly>

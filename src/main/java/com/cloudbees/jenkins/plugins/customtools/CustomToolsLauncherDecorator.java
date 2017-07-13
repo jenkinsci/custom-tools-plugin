@@ -124,7 +124,6 @@ public class CustomToolsLauncherDecorator {
 
     private static class CustomToolsDecoratedLauncher extends Launcher.DecoratedLauncher{
 
-        private final Launcher launcher;
         private final EnvVars homes;
         private final EnvVars versions;
         private final PathsList paths;
@@ -134,7 +133,6 @@ public class CustomToolsLauncherDecorator {
         public CustomToolsDecoratedLauncher(Launcher launcher, EnvVars homes, EnvVars versions, PathsList paths,
                                             List<EnvVariablesInjector> additionalVarInjectors, Node node) {
             super(launcher);
-            this.launcher = launcher;
             this.homes = homes;
             this.versions = versions;
             this.paths = paths;

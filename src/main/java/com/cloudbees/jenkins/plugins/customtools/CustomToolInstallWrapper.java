@@ -24,7 +24,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.*;
 import hudson.model.*;
 import hudson.model.Run.RunnerAbortedException;
-import hudson.tasks.BuildStepMonitor;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 
@@ -35,10 +35,8 @@ import javax.annotation.Nonnull;
 
 import jenkins.model.Jenkins;
 
-import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -50,27 +48,7 @@ import org.kohsuke.stapler.StaplerRequest;
  * @author Oleg Nenashev
  *
  */
-public class CustomToolInstallWrapper extends BuildWrapper implements SimpleBuildStep {
-
-    @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-
-    }
-
-    @Override
-    public boolean prebuild(AbstractBuild<?, ?> build, BuildListener listener) {
-        return false;
-    }
-
-    @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        return false;
-    }
-
-    @Override
-    public BuildStepMonitor getRequiredMonitorService() {
-        return null;
-    }
+public class CustomToolInstallWrapper extends BuildWrapper {
 
     /**
      * Ceremony needed to satisfy NoStaplerConstructionException:
@@ -130,29 +108,31 @@ public class CustomToolInstallWrapper extends BuildWrapper implements SimpleBuil
     
     public boolean isConvertHomesToUppercase() {
         return convertHomesToUppercase;
-    }   
-    
+    }
+
     @Override
-    public Environment setUp(AbstractBuild build, Launcher launcher,
-            BuildListener listener) throws IOException, InterruptedException {
-        
-        final EnvVars buildEnv = build.getEnvironment(listener);
-        final Node node = build.getBuiltOn();
-         
-        return new Environment() {            
+    public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        return setUp((Run)build, launcher, listener);
+    }
+
+    public Environment setUp(Run run, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+        assert run.getParent() instanceof BuildableItem;
+        final EnvVars buildEnv = run.getEnvironment(listener);
+        final Node node = ((BuildableItem) run.getParent()).getLastBuiltOn();
+
+        return new Environment() {
             @Override
-            public void buildEnvVars(Map<String, String> env) {    
-                
+            public void buildEnvVars(Map<String, String> env) {
                 // TODO: Inject Home dirs as well
                 for (SelectedTool selectedTool : selectedTools) {
                     CustomTool tool = selectedTool.toCustomTool();
                     if (tool != null && tool.hasVersions()) {
-                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
                         if (version != null && !env.containsKey(version.getVariableName())) {
                             env.put(version.getVariableName(), version.getDefaultVersion());
                         }
                     }
-                } 
+                }
             }
         };
     }
@@ -241,7 +221,6 @@ public class CustomToolInstallWrapper extends BuildWrapper implements SimpleBuil
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
-    @Symbol("installCustomTool")
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
 
         public DescriptorImpl() {
