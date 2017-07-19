@@ -89,7 +89,7 @@ public class CustomToolInstallWrapperTest {
     public void testEmptyToolsList() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(0); 
         wrappers.add(new CommandCallerInstaller());
-        wrappers.add(new CustomToolInstallWrapper(null));
+        wrappers.add(new CustomToolInstallWrapper(new CustomToolInstallWrapper.SelectedTool[]{}));
         nestedWrapperTestImpl(wrappers, false);
     }
     

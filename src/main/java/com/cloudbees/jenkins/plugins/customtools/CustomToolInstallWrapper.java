@@ -35,8 +35,10 @@ import javax.annotation.Nonnull;
 
 import jenkins.model.Jenkins;
 
+import jenkins.tasks.SimpleBuildWrapper;
 import net.sf.json.JSONObject;
 
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -48,7 +50,7 @@ import org.kohsuke.stapler.StaplerRequest;
  * @author Oleg Nenashev
  *
  */
-public class CustomToolInstallWrapper extends BuildWrapper {
+public class CustomToolInstallWrapper extends SimpleBuildWrapper {
 
     /**
      * Ceremony needed to satisfy NoStaplerConstructionException:
@@ -90,8 +92,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     private @Nonnull SelectedTool[] selectedTools = new SelectedTool[0];
     private @CheckForNull MulticonfigWrapperOptions multiconfigOptions = MulticonfigWrapperOptions.DEFAULT;
     private boolean convertHomesToUppercase = false;
-    
+
     @DataBoundConstructor
+    public CustomToolInstallWrapper(String name) {
+        this(new SelectedTool[]{new SelectedTool(name)});
+    }
+
     public CustomToolInstallWrapper(SelectedTool[] selectedTools) {
         this.selectedTools = (selectedTools != null) ? selectedTools : new SelectedTool[0];
     }
@@ -111,8 +117,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }
 
     @Override
-    public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-        return setUp((Run)build, launcher, listener);
+    public void setUp(Context context, Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) throws IOException, InterruptedException {
+        setUp(run, CustomToolsLauncherDecorator.decorate(this, run, launcher, listener), listener).buildEnvVars(context.getEnv());
     }
 
     public Environment setUp(Run run, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
@@ -126,6 +132,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 // TODO: Inject Home dirs as well
                 for (SelectedTool selectedTool : selectedTools) {
                     CustomTool tool = selectedTool.toCustomTool();
+
+                    // hackery
+                    String var = tool.getName().toUpperCase() + "_HOME";
+                    env.put(var, tool.getHome());
+                    env.put("PATH+" + var, tool.getHome());
+
                     if (tool != null && tool.hasVersions()) {
                         ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
                         if (version != null && !env.containsKey(version.getVariableName())) {
@@ -173,7 +185,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      * @throws CustomToolException 
      * @since 0.4
      */
-    public void checkVersions (@Nonnull CustomTool tool, @Nonnull BuildListener listener, 
+    public void checkVersions (@Nonnull CustomTool tool, @Nonnull TaskListener listener,
             @Nonnull EnvVars buildEnv, @Nonnull Node node, @Nonnull EnvVars target) throws CustomToolException {
         // Check version
         if (tool.hasVersions()) {
@@ -221,6 +233,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
+    @Symbol("customTool")
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
 
         public DescriptorImpl() {

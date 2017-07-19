@@ -17,6 +17,8 @@ package com.synopsys.arc.jenkinsci.plugins.customtools;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.model.BuildListener;
+import hudson.model.TaskListener;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -28,7 +30,7 @@ public class CustomToolsLogger {
     public static final String LOG_PREFIX = "[CustomTools] - ";
     
     /**
-     * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String)}
+     * @deprecated Use {@link #logMessage(hudson.model.TaskListener, java.lang.String)}
      * instead.
      */
     @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
@@ -37,19 +39,19 @@ public class CustomToolsLogger {
     }
     
     /**
-     * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String, java.lang.String)}
+     * @deprecated Use {@link #logMessage(hudson.model.TaskListener, java.lang.String, java.lang.String)}
      * instead.
      */
     @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
-    public static void LogMessage(@Nonnull BuildListener listener, String toolName, String message) {
+    public static void LogMessage(@Nonnull TaskListener listener, String toolName, String message) {
         logMessage(listener, toolName, message);
     }
     
-    public static void logMessage(@Nonnull BuildListener listener, String message) {
+    public static void logMessage(@Nonnull TaskListener listener, String message) {
         listener.getLogger().println(CustomToolsLogger.LOG_PREFIX+message);
     }
     
-    public static void logMessage(@Nonnull BuildListener listener, String toolName, String message) {
+    public static void logMessage(@Nonnull TaskListener listener, String toolName, String message) {
         listener.getLogger().println(CustomToolsLogger.LOG_PREFIX+toolName+": "+message);
     }
 }

@@ -29,10 +29,8 @@ import hudson.EnvVars;
 import hudson.Launcher;
 import hudson.Proc;
 import hudson.matrix.MatrixBuild;
-import hudson.model.Run;
-import hudson.model.BuildListener;
-import hudson.model.Computer;
-import hudson.model.Node;
+import hudson.model.*;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -47,7 +45,7 @@ import java.util.Locale;
  */
 public class CustomToolsLauncherDecorator {
 
-    public static Launcher decorate (CustomToolInstallWrapper wrapper, Run run, final Launcher launcher, BuildListener listener)
+    public static Launcher decorate(CustomToolInstallWrapper wrapper, Run run, final Launcher launcher, TaskListener listener)
             throws IOException, InterruptedException {
         EnvVars buildEnv = run.getEnvironment(listener);
         final EnvVars homes = new EnvVars();
@@ -65,7 +63,7 @@ public class CustomToolsLauncherDecorator {
         }
 
         // Each tool can export zero or many directories to the PATH
-        final Node node =  Computer.currentComputer().getNode();
+        final Node node = launcher.getComputer().getNode();
         if (node == null) {
             throw new CustomToolException("Cannot install tools on the deleted node");
         }
@@ -104,7 +102,7 @@ public class CustomToolsLauncherDecorator {
                 if (!spec.appliesTo(node)) {
                     continue;
                 }
-                CustomToolsLogger.logMessage(listener, installed.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
+                CustomToolsLogger.logMessage(listener, installed.getName(), "Label specifics from '" + spec.getLabel() + "' will be applied");
 
                 final String additionalLabelSpecificVars = spec.getAdditionalVars();
                 if (additionalLabelSpecificVars != null) {
@@ -112,75 +110,55 @@ public class CustomToolsLauncherDecorator {
                 }
             }
 
-            CustomToolsLogger.logMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
-            String homeDirVarName = (wrapper.isConvertHomesToUppercase() ? installed.getName().toUpperCase(Locale.ENGLISH) : installed.getName()) +"_HOME";
-            CustomToolsLogger.logMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
+            CustomToolsLogger.logMessage(listener, installed.getName(), "Tool is installed at " + installed.getHome());
+            String homeDirVarName = (wrapper.isConvertHomesToUppercase() ? installed.getName().toUpperCase(Locale.ENGLISH) : installed.getName()) + "_HOME";
+            CustomToolsLogger.logMessage(listener, installed.getName(), "Setting " + homeDirVarName + "=" + installed.getHome());
             homes.put(homeDirVarName, installed.getHome());
         }
 
-        return new CustomToolsDecoratedLauncher(launcher, homes, versions, paths, additionalVarInjectors, node);
-    }
+        return new Launcher.DecoratedLauncher(launcher) {
+            @Override
+            public Proc launch(ProcStarter starter) throws IOException {
+                EnvVars vars;
+                try { // Dirty hack, which allows to avoid NPEs in Launcher::envs()
+                    vars = toEnvVars(starter.envs());
+                } catch (NullPointerException npe) {
+                    vars = new EnvVars();
+                } catch (InterruptedException x) {
+                    throw new IOException(x);
+                }
 
+                // Inject paths
+                final String injectedPaths = paths.toListString();
+                if (injectedPaths != null) {
+                    vars.override("PATH+", injectedPaths);
+                }
 
-    private static class CustomToolsDecoratedLauncher extends Launcher.DecoratedLauncher{
+                // Inject additional variables
+                vars.putAll(homes);
+                vars.putAll(versions);
+                for (EnvVariablesInjector injector : additionalVarInjectors) {
+                    injector.Inject(vars);
+                }
 
-        private final EnvVars homes;
-        private final EnvVars versions;
-        private final PathsList paths;
-        private final List<EnvVariablesInjector> additionalVarInjectors;
-        private final Node node;
+                // Override paths to prevent JENKINS-20560
+                if (vars.containsKey("PATH")) {
+                    final String overallPaths = vars.get("PATH");
+                    vars.remove("PATH");
+                    vars.put("PATH+", overallPaths);
+                }
 
-        public CustomToolsDecoratedLauncher(Launcher launcher, EnvVars homes, EnvVars versions, PathsList paths,
-                                            List<EnvVariablesInjector> additionalVarInjectors, Node node) {
-            super(launcher);
-            this.homes = homes;
-            this.versions = versions;
-            this.paths = paths;
-            this.additionalVarInjectors = additionalVarInjectors;
-            this.node = node;
-        }
-
-        @Override
-        public Proc launch(ProcStarter starter) throws IOException {
-            EnvVars vars;
-            try { // Dirty hack, which allows to avoid NPEs in Launcher::envs()
-                vars = toEnvVars(starter.envs());
-            } catch (NullPointerException npe) {
-                vars = new EnvVars();
-            } catch (InterruptedException x) {
-                throw new IOException(x);
+                return getInner().launch(starter.envs(vars));
             }
 
-            // Inject paths
-            final String injectedPaths = paths.toListString();
-            if (injectedPaths != null) {
-                vars.override("PATH+", injectedPaths);
+            private EnvVars toEnvVars(String[] envs) throws IOException, InterruptedException {
+                Computer computer = node.toComputer();
+                EnvVars vars = computer != null ? computer.getEnvironment() : new EnvVars();
+                for (String line : envs) {
+                    vars.addLine(line);
+                }
+                return vars;
             }
-
-            // Inject additional variables
-            vars.putAll(homes);
-            vars.putAll(versions);
-            for (EnvVariablesInjector injector : additionalVarInjectors) {
-                injector.Inject(vars);
-            }
-
-            // Override paths to prevent JENKINS-20560
-            if (vars.containsKey("PATH")) {
-                final String overallPaths = vars.get("PATH");
-                vars.remove("PATH");
-                vars.put("PATH+", overallPaths);
-            }
-
-            return getInner().launch(starter.envs(vars));
-        }
-
-        private EnvVars toEnvVars(String[] envs) throws IOException, InterruptedException {
-            Computer computer = node.toComputer();
-            EnvVars vars = computer != null ? computer.getEnvironment() : new EnvVars();
-            for (String line : envs) {
-                vars.addLine(line);
-            }
-            return vars;
-        }
+        };
     }
 }
