@@ -59,7 +59,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
      */
     public final @CheckForNull CustomTool getTool() {
         CustomTool.DescriptorImpl tool = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
-        return tool.byName(toolName);
+        return tool == null ? null : tool.byName(toolName);
     }
     
     /**

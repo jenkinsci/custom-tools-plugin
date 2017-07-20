@@ -24,6 +24,7 @@
 package com.cloudbees.jenkins.plugins.customtools;
 
 import com.google.common.collect.ImmutableSet;
+import com.keypoint.PngEncoder;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.TaskListener;

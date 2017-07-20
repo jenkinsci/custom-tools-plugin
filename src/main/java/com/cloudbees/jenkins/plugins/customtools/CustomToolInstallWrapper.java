@@ -23,7 +23,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.*;
 import hudson.matrix.MatrixBuild;
 import hudson.model.*;
-import hudson.model.Run.RunnerAbortedException;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
@@ -41,7 +40,6 @@ import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildWrapper;
 import net.sf.json.JSONObject;
 
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -95,6 +93,7 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
     private @Nonnull SelectedTool[] selectedTools = new SelectedTool[0];
     private @CheckForNull MulticonfigWrapperOptions multiconfigOptions = MulticonfigWrapperOptions.DEFAULT;
     private boolean convertHomesToUppercase = false;
+    private transient UsedCustomToolAction usedCustomToolAction;
 
     @DataBoundConstructor
     public CustomToolInstallWrapper(SelectedTool[] selectedTools) {
@@ -121,40 +120,40 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
     }
 
     public Environment setUp(final Run run, final Launcher launcher, final TaskListener listener) throws IOException, InterruptedException {
-        assert run.getParent() instanceof BuildableItem;
-        final EnvVars buildEnv = run.getEnvironment(listener);
-        final Node node = ((BuildableItem) run.getParent()).getLastBuiltOn();
-
+        usedCustomToolAction = new UsedCustomToolAction();
+        run.addAction(usedCustomToolAction);
         return new Environment() {
             @Override
             public void buildEnvVars(Map<String, String> env) {
+                EnvVars buildEnv = new EnvVars();
                 try {
-                    // TODO: Inject Home dirs as well
-
-                    EnvVars buildEnv = null;
-
                     buildEnv = run.getEnvironment(listener);
-                    final EnvVars homes = new EnvVars();
-                    final EnvVars versions = new EnvVars();
+                } catch (IOException | InterruptedException e) {
+                    CustomToolsLogger.logMessage(listener, "Failed to get Environment - forcing setup.");
+                }
 
-                    final PathsList paths = new PathsList();
-                    final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
+                final EnvVars homes = new EnvVars();
+                final EnvVars versions = new EnvVars();
 
-                    // Handle multi-configuration build
-                    if (run instanceof MatrixBuild) {
-                        CustomToolsLogger.logMessage(listener, "Skipping installation of tools at the master job");
-                        if (getMulticonfigOptions().isSkipInstallationOnMaster()) {
-                            return;
-                        }
+                final PathsList paths = new PathsList();
+                final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
+
+                // Handle multi-configuration build
+                if (run instanceof MatrixBuild) {
+                    CustomToolsLogger.logMessage(listener, "Skipping installation of tools at the master job");
+                    if (getMulticonfigOptions().isSkipInstallationOnMaster()) {
+                        return;
                     }
+                }
 
-                    // Each tool can export zero or many directories to the PATH
-                    final Node node = launcher.getComputer().getNode();
-                    if (node == null) {
-                        CustomToolsLogger.logMessage(listener, "Cannot install tools on the deleted node");
-                    }
+                // Each tool can export zero or many directories to the PATH
+                final Node node = launcher.getComputer().getNode();
+                if (node == null) {
+                    CustomToolsLogger.logMessage(listener, "Cannot install tools on the deleted node");
+                }
 
-                    for (CustomToolInstallWrapper.SelectedTool selectedToolName : getSelectedTools()) {
+                for (CustomToolInstallWrapper.SelectedTool selectedToolName : getSelectedTools()) {
+                    try {
                         CustomTool tool = selectedToolName.toCustomToolValidated();
                         CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
 
@@ -203,6 +202,7 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
 
                         // previous decoratedLauncher.launch
                         // Inject paths
+                        usedCustomToolAction.logTool(tool);
                         final String injectedPaths = paths.toListString();
                         if (injectedPaths != null) {
                             env.put("PATH+", injectedPaths);
@@ -222,22 +222,19 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
                             env.put("PATH+", overallPaths);
                         }
 
-                    }
-
-                    for (SelectedTool selectedTool : selectedTools) {
-                        CustomTool tool = selectedTool.toCustomToolValidated();
-
                         if (tool != null && tool.hasVersions()) {
                             ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
                             if (version != null && !env.containsKey(version.getVariableName())) {
                                 env.put(version.getVariableName(), version.getDefaultVersion());
                             }
                         }
-                    }
 
-                } catch (Exception e) {
-                    // FIXME hack to propagate error message to console
-                    throw new RuntimeException(e);
+                    } catch (IOException | InterruptedException e) {
+                        CustomToolsLogger.logMessage(listener, selectedToolName.getName(), "Failed Installation");
+                        CustomToolsLogger.logMessage(listener, selectedToolName.getName(), e.getMessage());
+                        run.setResult(Result.FAILURE);
+                        // throw new AbortException(e.getMessage());
+                    }
                 }
             }
         };
