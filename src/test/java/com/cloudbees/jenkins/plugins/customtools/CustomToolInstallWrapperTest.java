@@ -104,11 +104,11 @@ public class CustomToolInstallWrapperTest {
         
         project.getBuildWrappersList().add(
                 new CustomToolInstallWrapper(tools));
-        
-        Future<FreeStyleBuild> build = project.scheduleBuild2(0);
-        j.assertBuildStatus(Result.FAILURE, build.get());
+
+        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        j.assertBuildStatus(Result.FAILURE, build);
         j.assertLogContains( 
-                Messages.CustomTool_GetToolByName_ErrorMessage(NON_EXISTENT_TOOL), build.get());
+                Messages.CustomTool_GetToolByName_ErrorMessage(NON_EXISTENT_TOOL), build);
     }
     
     /**

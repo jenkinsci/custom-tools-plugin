@@ -16,12 +16,12 @@
 
 package com.cloudbees.jenkins.plugins.customtools;
 
-import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolsLogger;
-import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
+import com.synopsys.arc.jenkinsci.plugins.customtools.*;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.*;
+import hudson.matrix.MatrixBuild;
 import hudson.model.*;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.model.TaskListener;
@@ -29,6 +29,9 @@ import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -94,10 +97,6 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
     private boolean convertHomesToUppercase = false;
 
     @DataBoundConstructor
-    public CustomToolInstallWrapper(String name) {
-        this(new SelectedTool[]{new SelectedTool(name)});
-    }
-
     public CustomToolInstallWrapper(SelectedTool[] selectedTools) {
         this.selectedTools = (selectedTools != null) ? selectedTools : new SelectedTool[0];
     }
@@ -118,10 +117,10 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
 
     @Override
     public void setUp(Context context, Run<?, ?> run, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) throws IOException, InterruptedException {
-        setUp(run, CustomToolsLauncherDecorator.decorate(this, run, launcher, listener), listener).buildEnvVars(context.getEnv());
+        setUp(run, launcher, listener).buildEnvVars(context.getEnv());
     }
 
-    public Environment setUp(Run run, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+    public Environment setUp(final Run run, final Launcher launcher, final TaskListener listener) throws IOException, InterruptedException {
         assert run.getParent() instanceof BuildableItem;
         final EnvVars buildEnv = run.getEnvironment(listener);
         final Node node = ((BuildableItem) run.getParent()).getLastBuiltOn();
@@ -129,21 +128,116 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
         return new Environment() {
             @Override
             public void buildEnvVars(Map<String, String> env) {
-                // TODO: Inject Home dirs as well
-                for (SelectedTool selectedTool : selectedTools) {
-                    CustomTool tool = selectedTool.toCustomTool();
+                try {
+                    // TODO: Inject Home dirs as well
 
-                    // hackery
-                    String var = tool.getName().toUpperCase() + "_HOME";
-                    env.put(var, tool.getHome());
-                    env.put("PATH+" + var, tool.getHome());
+                    EnvVars buildEnv = null;
 
-                    if (tool != null && tool.hasVersions()) {
-                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
-                        if (version != null && !env.containsKey(version.getVariableName())) {
-                            env.put(version.getVariableName(), version.getDefaultVersion());
+                    buildEnv = run.getEnvironment(listener);
+                    final EnvVars homes = new EnvVars();
+                    final EnvVars versions = new EnvVars();
+
+                    final PathsList paths = new PathsList();
+                    final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
+
+                    // Handle multi-configuration build
+                    if (run instanceof MatrixBuild) {
+                        CustomToolsLogger.logMessage(listener, "Skipping installation of tools at the master job");
+                        if (getMulticonfigOptions().isSkipInstallationOnMaster()) {
+                            return;
                         }
                     }
+
+                    // Each tool can export zero or many directories to the PATH
+                    final Node node = launcher.getComputer().getNode();
+                    if (node == null) {
+                        CustomToolsLogger.logMessage(listener, "Cannot install tools on the deleted node");
+                    }
+
+                    for (CustomToolInstallWrapper.SelectedTool selectedToolName : getSelectedTools()) {
+                        CustomTool tool = selectedToolName.toCustomToolValidated();
+                        CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
+
+                        // Check versioning
+                        checkVersions(tool, listener, buildEnv, node, versions);
+
+                        // This installs the tool if necessary
+                        CustomTool installed = tool
+                                .forNode(node, listener)
+                                .forEnvironment(buildEnv)
+                                .forBuildProperties(run.getParent().getProperties());
+
+                        try {
+                            installed.check();
+                        } catch (CustomToolException ex) {
+                            throw new AbortException(ex.getMessage());
+                        }
+
+                        // Handle global options of the tool
+                        //TODO: convert to label specifics?
+                        final PathsList installedPaths = installed.getPaths(node);
+                        installed.correctHome(installedPaths);
+                        paths.add(installedPaths);
+                        final String additionalVars = installed.getAdditionalVariables();
+                        if (additionalVars != null) {
+                            additionalVarInjectors.add(EnvVariablesInjector.create(additionalVars));
+                        }
+
+                        // Handle label-specific options of the tool
+                        for (LabelSpecifics spec : installed.getLabelSpecifics()) {
+                            if (!spec.appliesTo(node)) {
+                                continue;
+                            }
+                            CustomToolsLogger.logMessage(listener, installed.getName(), "Label specifics from '" + spec.getLabel() + "' will be applied");
+
+                            final String additionalLabelSpecificVars = spec.getAdditionalVars();
+                            if (additionalLabelSpecificVars != null) {
+                                additionalVarInjectors.add(EnvVariablesInjector.create(additionalLabelSpecificVars));
+                            }
+                        }
+
+                        CustomToolsLogger.logMessage(listener, installed.getName(), "Tool is installed at " + installed.getHome());
+                        String homeDirVarName = (isConvertHomesToUppercase() ? installed.getName().toUpperCase(Locale.ENGLISH) : installed.getName()) + "_HOME";
+                        CustomToolsLogger.logMessage(listener, installed.getName(), "Setting " + homeDirVarName + "=" + installed.getHome());
+                        homes.put(homeDirVarName, installed.getHome());
+
+                        // previous decoratedLauncher.launch
+                        // Inject paths
+                        final String injectedPaths = paths.toListString();
+                        if (injectedPaths != null) {
+                            env.put("PATH+", injectedPaths);
+                        }
+
+                        // Inject additional variables
+                        env.putAll(homes);
+                        env.putAll(versions);
+                        for (EnvVariablesInjector injector : additionalVarInjectors) {
+                            injector.Inject(new EnvVars(env));
+                        }
+
+                        // Override paths to prevent JENKINS-20560
+                        if (env.containsKey("PATH")) {
+                            final String overallPaths = env.get("PATH");
+                            env.remove("PATH");
+                            env.put("PATH+", overallPaths);
+                        }
+
+                    }
+
+                    for (SelectedTool selectedTool : selectedTools) {
+                        CustomTool tool = selectedTool.toCustomToolValidated();
+
+                        if (tool != null && tool.hasVersions()) {
+                            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
+                            if (version != null && !env.containsKey(version.getVariableName())) {
+                                env.put(version.getVariableName(), version.getDefaultVersion());
+                            }
+                        }
+                    }
+
+                } catch (Exception e) {
+                    // FIXME hack to propagate error message to console
+                    throw new RuntimeException(e);
                 }
             }
         };
@@ -151,18 +245,6 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
     
     public @Nonnull SelectedTool[] getSelectedTools() {
         return selectedTools.clone();
-    }
-    
-    /**
-     * The heart of the beast. Installs selected tools and exports their paths to the 
-     * PATH and their HOMEs as environment variables.
-     * @return A decorated launcher
-     */
-    @Override
-    public Launcher decorateLauncher(AbstractBuild build, final Launcher launcher,
-            BuildListener listener) throws IOException, InterruptedException,
-            RunnerAbortedException {
-        return CustomToolsLauncherDecorator.decorate(this, build, launcher, listener);
     }
     
     /**
@@ -233,7 +315,7 @@ public class CustomToolInstallWrapper extends SimpleBuildWrapper {
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
-    @Symbol("customTool")
+
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
 
         public DescriptorImpl() {

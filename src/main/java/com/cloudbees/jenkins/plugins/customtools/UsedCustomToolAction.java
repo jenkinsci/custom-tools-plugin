@@ -23,29 +23,46 @@
  */
 package com.cloudbees.jenkins.plugins.customtools;
 
+import hudson.Extension;
+import hudson.model.Describable;
+import hudson.model.Descriptor;
 import hudson.model.Run;
+import jenkins.model.Jenkins;
 import jenkins.model.RunAction2;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Tracks which tools are used in a job
  *
  * @author Alex Johnson
  */
-public class UsedCustomToolAction implements RunAction2 {
+public class UsedCustomToolAction implements RunAction2, Describable<UsedCustomToolAction> {
+
+    private ArrayList<CustomTool> usedTools;
 
     @Override
     public void onAttached(Run<?, ?> r) {
-        // do some tool tracking
+        usedTools = new ArrayList<CustomTool>();
     }
 
     @Override
     public void onLoad(Run<?, ?> r) {
-        // init
+        // no-op
+    }
+
+    public void logTool (CustomTool... tools) {
+        usedTools.addAll(Arrays.asList(tools));
+    }
+
+    public ArrayList<CustomTool> getUsedTools() {
+        return usedTools;
     }
 
     @Override
     public String getIconFileName() {
-        return "edit-delete.gif";
+        return "setting.png";
     }
 
     @Override
@@ -56,6 +73,20 @@ public class UsedCustomToolAction implements RunAction2 {
     @Override
     public String getUrlName() {
         return "used-custom-tools";
+    }
+
+    @Override
+    public Descriptor<UsedCustomToolAction> getDescriptor() {
+        return Jenkins.getActiveInstance().getDescriptorOrDie(getClass());
+    }
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<UsedCustomToolAction> {
+
+        @Override
+        public String getDisplayName() {
+            return "UsedCustomTools";
+        }
     }
 
 }
