@@ -53,7 +53,7 @@ public class MulticonfigWrapperOptions implements Serializable, Describable<Mult
         return (MulticonfigWrapperOptionsDescriptor) Jenkins.getActiveInstance().getDescriptor(getClass());
     }
 
-    @Symbol("customToolOptions")
+    @Symbol("multiconfigToolOptions")
     @Extension
     public static class MulticonfigWrapperOptionsDescriptor extends Descriptor<MulticonfigWrapperOptions> {
 

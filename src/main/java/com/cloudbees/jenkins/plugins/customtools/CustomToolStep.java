@@ -24,7 +24,7 @@
 package com.cloudbees.jenkins.plugins.customtools;
 
 import com.google.common.collect.ImmutableSet;
-import com.keypoint.PngEncoder;
+import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.TaskListener;
@@ -45,15 +45,17 @@ import java.util.Set;
  */
 public class CustomToolStep extends CoreWrapperStep {
 
-    private String name;
-    private String version;
+    private String version = null;
 
     @DataBoundConstructor
     public CustomToolStep (String name){
         super(new CustomToolInstallWrapper(
                 new CustomToolInstallWrapper.SelectedTool[]{new CustomToolInstallWrapper.SelectedTool(name)
             }));
-        this.name = name;
+    }
+
+    public String getName () {
+        return castDelagate().getSelectedTools()[0].getName();
     }
 
     @DataBoundSetter
@@ -65,8 +67,26 @@ public class CustomToolStep extends CoreWrapperStep {
         return this.version;
     }
 
-    public String getName () {
-        return this.name;
+    @DataBoundSetter
+    public void setConvertHomesToUppercase (boolean convertHomesToUppercase) {
+        castDelagate().setConvertHomesToUppercase(convertHomesToUppercase);
+    }
+
+    public boolean isConvertHomesToUppercase () {
+        return castDelagate().isConvertHomesToUppercase();
+    }
+
+    @DataBoundSetter
+    public void setMulticonfigOptions (MulticonfigWrapperOptions options) {
+        castDelagate().setMulticonfigOptions(options);
+    }
+
+    public MulticonfigWrapperOptions getMulticonfigOptions () {
+        return castDelagate().getMulticonfigOptions();
+    }
+
+    public CustomToolInstallWrapper castDelagate() {
+        return (CustomToolInstallWrapper) getDelegate();
     }
 
     @Extension
