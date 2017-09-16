@@ -20,6 +20,11 @@ import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoicePara
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import hudson.EnvVars;
 import hudson.model.Node;
+import jenkins.plugins.customtools.util.versions.CustomToolVersionInfo;
+import jenkins.plugins.customtools.util.versions.CustomToolVersionProvider;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
+
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -28,13 +33,12 @@ import javax.annotation.Nonnull;
  * A stub for a tool versions.
  * @author Oleg Nenashev
  * @since 0.4
+ * @deprecated Extended Choice Plugin support is deprecated
  */
-public class ToolVersion implements Serializable {
-    private String variableName;
-    private @CheckForNull String defaultVersion;
-    private @CheckForNull String actualVersion;
-    private @CheckForNull String versionSource;
-    public static final String DEFAULTS_SOURCE = "defaults";
+@Deprecated
+@Restricted(NoExternalUse.class)
+public class ToolVersion extends CustomToolVersionInfo {
+    public static final String DEFAULTS_SOURCE = CustomToolVersionProvider.getDefaultsSource();
 
     /**
      * Constructs a default version.
@@ -52,43 +56,21 @@ public class ToolVersion implements Serializable {
 
     public ToolVersion(String variableName, @CheckForNull String defaultVersion, 
             @CheckForNull String actualVersion, @CheckForNull String versionSource) {
-        this.variableName = variableName;
-        this.defaultVersion = defaultVersion;
-        this.actualVersion = actualVersion;
-        this.versionSource = versionSource;
-    }
-    
-    public boolean hasDefaultVersion() {
-        return defaultVersion != null;
+        super(variableName, defaultVersion, actualVersion, versionSource);
     }
 
-    public @CheckForNull String getDefaultVersion() {
-        return defaultVersion;
-    }
-        
+    //TODO: Remove?
     public void setDefaultVersion(@CheckForNull String defaultVersion) {
-        this.defaultVersion = defaultVersion;
+        // Do nothing
     }
 
-    public String getVariableName() {
-        return variableName;
-    }
-
-    public @CheckForNull String getActualVersion() {
-        return actualVersion;
-    }
-
-    public @CheckForNull String getVersionSource() {
-        return versionSource;
-    }
-    
     /**
      * Retrieves the default {@link CustomTool} version.
      * @param tool Tool
      * @return The default version or null if the versioning is not configured. 
      */
     public static @CheckForNull ToolVersion getDefaultToolVersion(@Nonnull CustomTool tool) {
-        final ToolVersionConfig versionConfig = tool.getToolVersion();
+        final ToolVersionConfig versionConfig = ToolVersionConfig.forTool(tool);
         if (versionConfig == null) {
             return null;
         }
@@ -130,6 +112,7 @@ public class ToolVersion implements Serializable {
 
     @Override
     public String toString() {
+        final String defaultVersion = getDefaultVersion();
         return defaultVersion != null ? defaultVersion : "null";
     }    
 }

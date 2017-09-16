@@ -92,7 +92,7 @@ public class PathsList implements Serializable {
     }
     
     /**
-     * Gets the list of installed tools.
+     * Gets the list of installed versions.
      * @return A list with valid delimiters or null if paths is empty
      */
     public @CheckForNull String toListString() {

@@ -30,6 +30,8 @@ import java.io.IOException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import net.sf.json.JSONObject;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -37,7 +39,10 @@ import org.kohsuke.stapler.StaplerRequest;
  * Implements "Tool version" parameter.
  * @author Oleg Nenashev
  * @since 0.4
+ * @deprecated Support of Extended Choice Parameter is deprecated.
  */
+@Deprecated
+@Restricted(NoExternalUse.class)
 public class ToolVersionParameterDefinition extends ParameterDefinition {
     
     private final String toolName;
@@ -68,7 +73,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
      */
     public final @CheckForNull ToolVersionConfig getVersionConfig() {
         CustomTool tool = getTool();
-        return tool != null ? tool.getToolVersion() : null;
+        return tool != null ? ToolVersionConfig.forTool(tool) : null;
     }
     
     private @Nonnull ExtendedChoiceParameterDefinition getVersionsListSource() {

@@ -18,6 +18,9 @@ package com.synopsys.arc.jenkinsci.plugins.customtools.versions;
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
 import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import hudson.tools.ToolInstallation;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -27,7 +30,11 @@ import javax.annotation.Nonnull;
  * Provides helper for tool version handling.
  * @author Oleg Nenashev
  * @since 0.4
+ * @deprecated Extended Choice Parameter plugin support is deprecated.
+ *             New version of the plugin is not compatible, old one has SECURITY defects.
  */
+@Deprecated
+@Restricted(NoExternalUse.class)
 public class ToolVersionHelper {
     public static ExtendedChoiceParameterDefinition getDefaultVersionDescr(String toolName) {
         return new ExtendedChoiceParameterDefinition(
@@ -46,7 +53,7 @@ public class ToolVersionHelper {
     public static ExtendedChoiceParameterDefinition getVersionDescr(String toolName) {
         CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
         final CustomTool tool = tools.byName(toolName);  
-        final ToolVersionConfig toolVersionConfig = (tool != null) ? tool.getToolVersion() : null;
+        final ToolVersionConfig toolVersionConfig = (tool != null) ? ToolVersionConfig.forTool(tool) : null;
         
         return toolVersionConfig !=null
                 ? toolVersionConfig.getVersionsListSource() 
@@ -54,8 +61,8 @@ public class ToolVersionHelper {
     }
     
     /**
-     * Gets list of versioned tools.
-     * @return List of tools, which have versions specified
+     * Gets list of versioned versions.
+     * @return List of versions, which have versions specified
      */
     public static @Nonnull List<CustomTool> getAllVersionedTools() {
         CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);

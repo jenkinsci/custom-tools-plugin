@@ -41,7 +41,7 @@ public class EnvStringParseHelper {
     private static final SimpleVariablesSubstitutionHelper HELPER = new VariablesSubstitutionHelper.SimpleVariablesSubstitutionHelper();
          
     /**
-     * Resolves tools installation directory using global variables.
+     * Resolves versions installation directory using global variables.
      * @param inputString Input path with macro calls
      * @param macroName Input string
      * @throws CustomToolException String validation failed

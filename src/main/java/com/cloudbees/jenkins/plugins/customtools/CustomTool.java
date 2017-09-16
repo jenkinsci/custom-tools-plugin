@@ -49,6 +49,7 @@ import java.util.Arrays;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.MasterToSlaveFileCallable;
+import jenkins.plugins.customtools.util.versions.CustomToolVersionProvider;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 
 import org.kohsuke.accmod.Restricted;
@@ -81,7 +82,8 @@ public class CustomTool extends ToolInstallation implements
     /**
      * Optional field, which referenced the {@link ToolVersion} configuration.
      */
-    private final @CheckForNull ToolVersionConfig toolVersion;
+    private final @CheckForNull
+    CustomToolVersionProvider toolVersion;
     /**
      * Additional variables string.
      * Stores variables expression in *.properties format.
@@ -91,9 +93,21 @@ public class CustomTool extends ToolInstallation implements
     private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
     
     @DataBoundConstructor
-    public CustomTool(@Nonnull String name, @Nonnull String home, 
-            @CheckForNull List properties, @CheckForNull String exportedPaths, 
-            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion, 
+    public CustomTool(@Nonnull String name, @Nonnull String home,
+                      @CheckForNull List properties, @CheckForNull String exportedPaths,
+                      @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull CustomToolVersionProvider toolVersion,
+                      @CheckForNull String additionalVariables) {
+        super(name, home, properties);
+        this.exportedPaths = exportedPaths;
+        this.labelSpecifics = labelSpecifics != null ? Arrays.copyOf(labelSpecifics, labelSpecifics.length) : null;
+        this.toolVersion = toolVersion;
+        this.additionalVariables = additionalVariables;
+    }
+
+    @Deprecated
+    public CustomTool(@Nonnull String name, @Nonnull String home,
+            @CheckForNull List properties, @CheckForNull String exportedPaths,
+            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion,
             @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
@@ -108,12 +122,14 @@ public class CustomTool extends ToolInstallation implements
 
     /**
      * Gets the tool version configuration.
-     * @return Tool version configuration or null if it is not configured.
+     * @return Tool version configuration or {@code null} if it is not configured.
+     * @since 1.0
      */
-    public @CheckForNull ToolVersionConfig getToolVersion() {
+    public @CheckForNull
+    CustomToolVersionProvider getToolVersion() {
         return toolVersion;
     }
-    
+
     public boolean hasVersions() {
         return toolVersion != null;
     }
