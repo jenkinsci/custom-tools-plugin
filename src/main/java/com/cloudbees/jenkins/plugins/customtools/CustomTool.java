@@ -20,8 +20,6 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -80,7 +78,7 @@ public class CustomTool extends ToolInstallation implements
      */
     private transient @CheckForNull String correctedHome = null;
     /**
-     * Optional field, which referenced the {@link ToolVersion} configuration.
+     * Optional field, which referenced the {@link CustomToolVersionProvider} configuration.
      */
     private final @CheckForNull
     CustomToolVersionProvider toolVersion;
@@ -95,20 +93,9 @@ public class CustomTool extends ToolInstallation implements
     @DataBoundConstructor
     public CustomTool(@Nonnull String name, @Nonnull String home,
                       @CheckForNull List properties, @CheckForNull String exportedPaths,
-                      @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull CustomToolVersionProvider toolVersion,
+                      @CheckForNull LabelSpecifics[] labelSpecifics,
+                      @CheckForNull CustomToolVersionProvider toolVersion,
                       @CheckForNull String additionalVariables) {
-        super(name, home, properties);
-        this.exportedPaths = exportedPaths;
-        this.labelSpecifics = labelSpecifics != null ? Arrays.copyOf(labelSpecifics, labelSpecifics.length) : null;
-        this.toolVersion = toolVersion;
-        this.additionalVariables = additionalVariables;
-    }
-
-    @Deprecated
-    public CustomTool(@Nonnull String name, @Nonnull String home,
-            @CheckForNull List properties, @CheckForNull String exportedPaths,
-            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion,
-            @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
         this.labelSpecifics = labelSpecifics != null ? Arrays.copyOf(labelSpecifics, labelSpecifics.length) : null;

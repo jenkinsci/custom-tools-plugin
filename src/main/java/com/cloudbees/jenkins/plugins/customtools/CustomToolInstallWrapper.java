@@ -22,7 +22,6 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -118,8 +117,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }   
     
     @Override
-    public Environment setUp(AbstractBuild build, Launcher launcher,
-            BuildListener listener) throws IOException, InterruptedException {
+    public Environment setUp(final AbstractBuild build, Launcher launcher,
+                             final BuildListener listener) throws IOException, InterruptedException {
         
         final EnvVars buildEnv = build.getEnvironment(listener);
         final Node node = build.getBuiltOn();
@@ -131,8 +130,9 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 // TODO: Inject Home dirs as well
                 for (SelectedTool selectedTool : selectedTools) {
                     CustomTool tool = selectedTool.toCustomTool();
+                    CustomToolVersionProvider versionProvider = tool != null ? tool.getToolVersion() : null;
                     if (tool != null && tool.hasVersions()) {
-                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+                        CustomToolVersionInfo version = versionProvider.resolveToolVersion(tool, node, build, buildEnv, listener);
                         if (version != null && !env.containsKey(version.getVariableName())) {
                             env.put(version.getVariableName(), version.getDefaultVersion());
                         }

@@ -11,6 +11,7 @@ import hudson.model.TaskListener;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 
 /**
  *
@@ -18,7 +19,7 @@ import javax.annotation.Nonnull;
  * @since TODO
  */
 public abstract class CustomToolVersionProvider extends AbstractDescribableImpl<CustomToolVersionProvider>
-        implements ExtensionPoint {
+        implements ExtensionPoint, Serializable {
 
     private static final String DEFAULTS_SOURCE = "defaults";
 

@@ -19,7 +19,6 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
 import hudson.model.TaskListener;
-import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.Builder;
@@ -39,7 +38,6 @@ import java.util.concurrent.Future;
 import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 import jenkins.plugins.customtools.util.JenkinsHelper;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -118,7 +116,7 @@ public class CustomToolInstallerTest {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
+        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null, null, null);
         return installation;
     }
     
@@ -130,7 +128,7 @@ public class CustomToolInstallerTest {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);
+        CustomTool installation = new CustomTool(name, null, properties, "./", specifics, null, additionalVars);
         return installation;
     }
     
