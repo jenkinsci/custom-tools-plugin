@@ -41,9 +41,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:ssh://github.com/jenkinsci/customtoosl-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/customtools-plugin.git</developerConnection>
-    <url>https://github.com/jenkinsci/customtools-plugin</url>
+    <connection>scm:git:git://github.com/jenkinsci/custom-tools-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/custom-tools-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/custom-tools-plugin</url>
     <tag>HEAD</tag>
   </scm>
 
