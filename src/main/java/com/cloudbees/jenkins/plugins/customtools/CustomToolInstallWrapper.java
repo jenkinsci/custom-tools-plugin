@@ -22,7 +22,6 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -35,7 +34,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
-import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.tasks.BuildWrapper;
@@ -50,13 +48,15 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.plugins.customtools.util.JenkinsHelper;
 
+import jenkins.plugins.customtools.util.versions.CustomToolVersionInfo;
+import jenkins.plugins.customtools.util.versions.CustomToolVersionProvider;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
- * Installs tools selected by the user. Exports configured paths and a home variable for each tool.
+ * Installs versions selected by the user. Exports configured paths and a home variable for each tool.
  * 
  * @author rcampbell
  * @author Oleg Nenashev
@@ -117,8 +117,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }   
     
     @Override
-    public Environment setUp(AbstractBuild build, Launcher launcher,
-            BuildListener listener) throws IOException, InterruptedException {
+    public Environment setUp(final AbstractBuild build, Launcher launcher,
+                             final BuildListener listener) throws IOException, InterruptedException {
         
         final EnvVars buildEnv = build.getEnvironment(listener);
         final Node node = build.getBuiltOn();
@@ -130,8 +130,9 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 // TODO: Inject Home dirs as well
                 for (SelectedTool selectedTool : selectedTools) {
                     CustomTool tool = selectedTool.toCustomTool();
+                    CustomToolVersionProvider versionProvider = tool != null ? tool.getToolVersion() : null;
                     if (tool != null && tool.hasVersions()) {
-                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+                        CustomToolVersionInfo version = versionProvider.resolveToolVersion(tool, node, build, buildEnv, listener);
                         if (version != null && !env.containsKey(version.getVariableName())) {
                             env.put(version.getVariableName(), version.getDefaultVersion());
                         }
@@ -146,7 +147,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }
     
     /**
-     * The heart of the beast. Installs selected tools and exports their paths to the 
+     * The heart of the beast. Installs selected versions and exports their paths to the
      * PATH and their HOMEs as environment variables.
      * @return A decorated launcher
      */
@@ -164,7 +165,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         
         // Handle multi-configuration build
         if (build instanceof MatrixBuild) {  
-            CustomToolsLogger.logMessage(listener, "Skipping installation of tools at the master job");
+            CustomToolsLogger.logMessage(listener, "Skipping installation of versions at the master job");
             if (getMulticonfigOptions().isSkipMasterInstallation()) {
                 return launcher;
             }
@@ -173,7 +174,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         // Each tool can export zero or many directories to the PATH
         final Node node =  Computer.currentComputer().getNode();
         if (node == null) {
-            throw new CustomToolException("Cannot install tools on the deleted node");
+            throw new CustomToolException("Cannot install versions on the deleted node");
         }
         
         for (SelectedTool selectedToolName : selectedTools) {
@@ -293,8 +294,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     public void checkVersions (@Nonnull CustomTool tool, @Nonnull BuildListener listener, 
             @Nonnull EnvVars buildEnv, @Nonnull Node node, @Nonnull EnvVars target) throws CustomToolException {
         // Check version
-        if (tool.hasVersions()) {
-            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+        CustomToolVersionProvider toolVersionProvider = tool.getToolVersion();
+        if (toolVersionProvider != null) {
+            //TODO: pass run if possible?
+            CustomToolVersionInfo version = toolVersionProvider.resolveToolVersion(tool, node, null, buildEnv, listener);
             if (version == null) {
                 CustomToolsLogger.logMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
                 throw new CustomToolException("Version has not been specified for the "+tool.getName());
@@ -304,8 +307,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             
             // Override default versions
             final String versionSource = version.getVersionSource();
-            if (versionSource != null && versionSource.equals(ToolVersion.DEFAULTS_SOURCE)) {            
-                String envStr = version.getVariableName()+"="+version.getDefaultVersion();
+            if (versionSource != null && versionSource.equals(CustomToolVersionProvider.getDefaultsSource())) {
+                String envStr = version.getVariableName() + "=" + version.getDefaultVersion();
                 target.addLine(envStr);
                 buildEnv.addLine(envStr);
             }

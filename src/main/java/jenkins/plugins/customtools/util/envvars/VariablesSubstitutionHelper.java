@@ -53,7 +53,7 @@ public abstract class VariablesSubstitutionHelper {
     }
     
     /**
-     * Resolves tools installation directory using global variables.
+     * Resolves versions installation directory using global variables.
      * @param environment Collection of environment variables
      * @param inputValue Input path with macro calls
      * @return Raw string

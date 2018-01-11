@@ -72,7 +72,7 @@ public class CustomToolInstallWrapperTest {
     
     
     /**
-     * Tests custom tools with wrapper, which calls wrapper without
+     * Tests custom versions with wrapper, which calls wrapper without
      * specifying of envs.
      * @throws Exception Test failure
      */
