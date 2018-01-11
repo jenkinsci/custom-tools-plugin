@@ -32,6 +32,7 @@ import hudson.tools.ToolInstallation;
 import hudson.util.StreamTaskListener;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -40,7 +41,7 @@ import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
-import jenkins.plugins.customtools.util.JenkinsHelper;
+import jenkins.model.Jenkins;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,13 +58,13 @@ public class CustomToolInstallerTest {
 
     @Test
     public void testSmoke() throws IOException, InterruptedException {
-        VirtualChannel channel = JenkinsHelper.getInstanceOrDie().getChannel();
+        VirtualChannel channel = Jenkins.getActiveInstance().getChannel();
         EnvVars envVars = new EnvVars();
         
         
         CustomTool installation = createTool("MyTrue");        
         
-        TaskListener listener = new StreamTaskListener(System.out);;
+        TaskListener listener = new StreamTaskListener(System.out, Charset.defaultCharset());;
         installation = installation.forEnvironment(envVars).forNode(j.jenkins, listener);
         
         if (!new FilePath(channel, installation.getHome()).exists()) {
@@ -81,7 +82,7 @@ public class CustomToolInstallerTest {
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         
         CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
-                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT, false);
+                new CustomToolInstallWrapper.SelectedTool[] { selectedTool });
         project.getBuildWrappersList().add(wrapper);
         Builder b = new Shell("echo $PATH; mytrue");
         project.getBuildersList().add(b);
@@ -102,7 +103,7 @@ public class CustomToolInstallerTest {
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         
         CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
-                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT, false);
+                new CustomToolInstallWrapper.SelectedTool[] { selectedTool });
         project.getBuildWrappersList().add(wrapper);
         Builder b = new Shell("env; mytrue");
         project.getBuildersList().add(b);

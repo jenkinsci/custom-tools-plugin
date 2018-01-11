@@ -17,7 +17,6 @@ package com.cloudbees.jenkins.plugins.customtools;
 
 import com.synopsys.arc.jenkins.plugins.customtools.util.CommandCallerInstaller;
 import com.synopsys.arc.jenkins.plugins.customtools.util.StubWrapper;
-import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
@@ -90,7 +89,7 @@ public class CustomToolInstallWrapperTest {
     public void testEmptyToolsList() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(0); 
         wrappers.add(new CommandCallerInstaller());
-        wrappers.add(new CustomToolInstallWrapper(null, MulticonfigWrapperOptions.DEFAULT, false));
+        wrappers.add(new CustomToolInstallWrapper(new CustomToolInstallWrapper.SelectedTool[]{}));
         nestedWrapperTestImpl(wrappers, false);
     }
     
@@ -104,12 +103,12 @@ public class CustomToolInstallWrapperTest {
                 };
         
         project.getBuildWrappersList().add(
-                new CustomToolInstallWrapper(tools, MulticonfigWrapperOptions.DEFAULT, false));
-        
-        Future<FreeStyleBuild> build = project.scheduleBuild2(0);
-        j.assertBuildStatus(Result.FAILURE, build.get());
+                new CustomToolInstallWrapper(tools));
+
+        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        j.assertBuildStatus(Result.FAILURE, build);
         j.assertLogContains( 
-                Messages.CustomTool_GetToolByName_ErrorMessage(NON_EXISTENT_TOOL), build.get());
+                Messages.CustomTool_GetToolByName_ErrorMessage(NON_EXISTENT_TOOL), build);
     }
     
     /**
@@ -141,8 +140,7 @@ public class CustomToolInstallWrapperTest {
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
         
         return new CustomToolInstallWrapper(
-                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, 
-                MulticonfigWrapperOptions.DEFAULT, false);
+                new CustomToolInstallWrapper.SelectedTool[] { selectedTool });
     }   
     
     private Builder checkVariableBuilder(String varName, String varValue) {
