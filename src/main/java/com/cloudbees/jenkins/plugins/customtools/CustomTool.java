@@ -92,7 +92,7 @@ public class CustomTool extends ToolInstallation implements
     
     @DataBoundConstructor
     public CustomTool(@Nonnull String name, @Nonnull String home, 
-            @CheckForNull List properties, @CheckForNull String exportedPaths, 
+            @CheckForNull List<? extends hudson.tools.ToolProperty<?>> properties, @CheckForNull String exportedPaths,
             @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion, 
             @CheckForNull String additionalVariables) {
         super(name, home, properties);
