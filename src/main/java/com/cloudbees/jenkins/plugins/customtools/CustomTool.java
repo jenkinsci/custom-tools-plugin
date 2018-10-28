@@ -315,7 +315,7 @@ public class CustomTool extends ToolInstallation implements
                 }
                 final File homeDir = new File(toolHome);
                 return new PathsList(outList, homeDir.getAbsolutePath());               
-            };
+            }
         });
               
         return pathsFound;

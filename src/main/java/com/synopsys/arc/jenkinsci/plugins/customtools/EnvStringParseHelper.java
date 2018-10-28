@@ -32,7 +32,7 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 @Restricted(NoExternalUse.class)
 public class EnvStringParseHelper {
     
-    private EnvStringParseHelper() {};
+    private EnvStringParseHelper() {}
     
     private static final SimpleVariablesSubstitutionHelper HELPER = new VariablesSubstitutionHelper.SimpleVariablesSubstitutionHelper();
          
