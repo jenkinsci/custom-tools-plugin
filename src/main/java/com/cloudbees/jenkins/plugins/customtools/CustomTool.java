@@ -37,6 +37,7 @@ import hudson.slaves.NodeSpecific;
 import hudson.tools.ToolDescriptor;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolInstallation;
+import hudson.tools.ToolProperty;
 import hudson.tools.ZipExtractionInstaller;
 
 import java.io.File;
@@ -92,7 +93,7 @@ public class CustomTool extends ToolInstallation implements
     
     @DataBoundConstructor
     public CustomTool(@Nonnull String name, @Nonnull String home, 
-            @CheckForNull List properties, @CheckForNull String exportedPaths, 
+            @CheckForNull List<? extends ToolProperty<?>> properties, @CheckForNull String exportedPaths,
             @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion, 
             @CheckForNull String additionalVariables) {
         super(name, home, properties);
