@@ -245,7 +245,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 vars.putAll(homes);
                 vars.putAll(versions);
                 for (EnvVariablesInjector injector : additionalVarInjectors) {
-                    injector.Inject(vars);
+                    injector.injectVariables(vars);
                 }
                            
                 // Override paths to prevent JENKINS-20560              

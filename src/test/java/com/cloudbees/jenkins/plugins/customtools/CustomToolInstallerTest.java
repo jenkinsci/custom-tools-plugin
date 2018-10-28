@@ -62,7 +62,7 @@ public class CustomToolInstallerTest {
         
         CustomTool installation = createTool("MyTrue");        
         
-        TaskListener listener = new StreamTaskListener(System.out);;
+        TaskListener listener = StreamTaskListener.fromStdout();;
         installation = installation.forEnvironment(envVars).forNode(j.jenkins, listener);
         
         if (!new FilePath(channel, installation.getHome()).exists()) {
