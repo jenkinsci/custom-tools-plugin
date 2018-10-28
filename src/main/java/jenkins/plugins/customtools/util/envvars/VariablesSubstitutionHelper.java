@@ -109,11 +109,11 @@ public abstract class VariablesSubstitutionHelper {
     }
     
     public static boolean hasMacros(@CheckForNull String inputString) {
-        return inputString != null ? inputString.contains("${") : false;
+        return inputString != null && inputString.contains("${");
     }
     
     public static boolean hasMacros(@CheckForNull String inputString, String macroName) {
-        return inputString != null ? inputString.contains("${"+macroName+"}") : false;
+        return inputString != null && inputString.contains("${" + macroName + "}");
     }
     
     public static class SimpleVariablesSubstitutionHelper extends VariablesSubstitutionHelper {
