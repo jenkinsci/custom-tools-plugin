@@ -97,7 +97,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
     }
     
-    private @Nonnull SelectedTool[] selectedTools = new SelectedTool[0];
+    private final @Nonnull SelectedTool[] selectedTools;
     private final @CheckForNull MulticonfigWrapperOptions multiconfigOptions;    
     private final boolean convertHomesToUppercase;
     
