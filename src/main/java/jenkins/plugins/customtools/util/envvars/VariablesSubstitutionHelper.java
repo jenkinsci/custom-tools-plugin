@@ -17,15 +17,12 @@
 package jenkins.plugins.customtools.util.envvars;
 
 import hudson.EnvVars;
-import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.CheckForNull;
@@ -112,11 +109,11 @@ public abstract class VariablesSubstitutionHelper {
     }
     
     public static boolean hasMacros(@CheckForNull String inputString) {
-        return inputString != null ? inputString.contains("${") : false;
+        return inputString != null && inputString.contains("${");
     }
     
     public static boolean hasMacros(@CheckForNull String inputString, String macroName) {
-        return inputString != null ? inputString.contains("${"+macroName+"}") : false;
+        return inputString != null && inputString.contains("${" + macroName + "}");
     }
     
     public static class SimpleVariablesSubstitutionHelper extends VariablesSubstitutionHelper {
@@ -139,9 +136,7 @@ public abstract class VariablesSubstitutionHelper {
             }
             
             try {
-                String res = str.toString("UTF-8")
-                        .split("\n")[2].replaceFirst(".*TMP=", "").trim();
-                return res;
+                return str.toString("UTF-8").split("\n")[2].replaceFirst(".*TMP=", "").trim();
             } catch (UnsupportedEncodingException ex) {
                 throw new IllegalStateException("UTF-8 encoding is not supported", ex);
             }

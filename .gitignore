@@ -2,5 +2,7 @@
 .project
 target
 work
+.idea
+*.iml
 .settings/
 *~
