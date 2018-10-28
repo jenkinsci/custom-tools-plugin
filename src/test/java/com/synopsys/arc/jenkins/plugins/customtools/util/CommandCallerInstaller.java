@@ -21,7 +21,6 @@ import hudson.Launcher.ProcStarter;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Implements a wrapper, which contains internal launcher call.
@@ -36,13 +35,8 @@ public class CommandCallerInstaller extends StubWrapper {
         ProcStarter starter = launcher.launch().cmds("echo","Hello");
         starter.start();
         starter.join();
-        
-        return new Environment() {
-            @Override
-            public void buildEnvVars(Map<String, String> env) {
-                super.buildEnvVars(env); //To change body of generated methods, choose Tools | Templates.
-            } 
-        };  
+
+        return new Environment() {};
     }
     
     @Extension

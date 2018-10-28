@@ -19,7 +19,6 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
 import hudson.model.TaskListener;
-import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.Builder;
@@ -63,7 +62,7 @@ public class CustomToolInstallerTest {
         
         CustomTool installation = createTool("MyTrue");        
         
-        TaskListener listener = new StreamTaskListener(System.out);;
+        TaskListener listener = StreamTaskListener.fromStdout();
         installation = installation.forEnvironment(envVars).forNode(j.jenkins, listener);
         
         if (!new FilePath(channel, installation.getHome()).exists()) {
@@ -118,8 +117,7 @@ public class CustomToolInstallerTest {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
-        return installation;
+        return new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
     }
     
     //TODO: refactor and generalize
@@ -130,8 +128,7 @@ public class CustomToolInstallerTest {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);
-        return installation;
+        return new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);
     }
     
 }

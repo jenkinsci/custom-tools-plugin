@@ -80,7 +80,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
      */
     public void injectVariables(@Nonnull EnvVars target) throws IOException {
         for (Entry<String, EnvVariablesInjector.Entity> entry: entrySet()) {
-            entry.getValue().Inject(target);
+            entry.getValue().injectVariables(target);
         }
     } 
     

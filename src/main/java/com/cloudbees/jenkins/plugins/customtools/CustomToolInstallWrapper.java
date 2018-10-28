@@ -35,7 +35,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
-import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.tasks.BuildWrapper;
@@ -50,10 +49,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.plugins.customtools.util.JenkinsHelper;
 
-import net.sf.json.JSONObject;
-
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Installs tools selected by the user. Exports configured paths and a home variable for each tool.
@@ -101,7 +97,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
     }
     
-    private @Nonnull SelectedTool[] selectedTools = new SelectedTool[0];
+    private final @Nonnull SelectedTool[] selectedTools;
     private final @CheckForNull MulticonfigWrapperOptions multiconfigOptions;    
     private final boolean convertHomesToUppercase;
     
@@ -246,7 +242,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 vars.putAll(homes);
                 vars.putAll(versions);
                 for (EnvVariablesInjector injector : additionalVarInjectors) {
-                    injector.Inject(vars);
+                    injector.injectVariables(vars);
                 }
                            
                 // Override paths to prevent JENKINS-20560              
@@ -357,13 +353,6 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         public CustomTool[] getInstallations() {
             return JenkinsHelper.getInstanceOrDie().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
         }
-        
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject json)
-                throws hudson.model.Descriptor.FormException {
-            //TODO: Auto-generated method stub
-            return super.configure(req, json);
-        }     
-    }    
+    }
 }
 
