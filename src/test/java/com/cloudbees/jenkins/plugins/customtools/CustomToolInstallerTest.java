@@ -117,8 +117,7 @@ public class CustomToolInstallerTest {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
-        return installation;
+        return new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
     }
     
     //TODO: refactor and generalize
@@ -129,8 +128,7 @@ public class CustomToolInstallerTest {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
         properties.add(new InstallSourceProperty(installers));
 
-        CustomTool installation = new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);
-        return installation;
+        return new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);
     }
     
 }

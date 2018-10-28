@@ -146,9 +146,8 @@ public class CustomToolInstallWrapperTest {
     }   
     
     private Builder checkVariableBuilder(String varName, String varValue) {
-        Builder b = new Shell("env \nif [ \"$"+ varName+"\" != \""+ 
+        return new Shell("env \nif [ \"$"+ varName+"\" != \""+
                 varValue + "\" ] ; then \n  echo Test failed \n  exit -1 \n" +
                 "else \n  echo OK:"+varName+"="+varValue+" \nfi");
-        return b;      
     }
 }

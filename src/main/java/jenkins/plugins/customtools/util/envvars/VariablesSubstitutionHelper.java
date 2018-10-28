@@ -136,9 +136,7 @@ public abstract class VariablesSubstitutionHelper {
             }
             
             try {
-                String res = str.toString("UTF-8")
-                        .split("\n")[2].replaceFirst(".*TMP=", "").trim();
-                return res;
+                return str.toString("UTF-8").split("\n")[2].replaceFirst(".*TMP=", "").trim();
             } catch (UnsupportedEncodingException ex) {
                 throw new IllegalStateException("UTF-8 encoding is not supported", ex);
             }
