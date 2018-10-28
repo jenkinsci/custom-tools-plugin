@@ -19,7 +19,6 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
 import hudson.model.TaskListener;
-import hudson.model.Computer;
 import hudson.model.FreeStyleProject;
 import hudson.remoting.VirtualChannel;
 import hudson.tasks.Builder;

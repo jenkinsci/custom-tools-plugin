@@ -17,15 +17,12 @@
 package jenkins.plugins.customtools.util.envvars;
 
 import hudson.EnvVars;
-import hudson.model.Hudson;
 import hudson.model.Node;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 import javax.annotation.CheckForNull;

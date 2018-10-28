@@ -16,11 +16,7 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools;
 
 import hudson.EnvVars;
-import hudson.model.Hudson;
 import hudson.model.Node;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
-import hudson.slaves.NodeProperty;
-import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
