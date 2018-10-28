@@ -49,10 +49,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.plugins.customtools.util.JenkinsHelper;
 
-import net.sf.json.JSONObject;
-
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
 
 /**
  * Installs tools selected by the user. Exports configured paths and a home variable for each tool.
@@ -356,13 +353,6 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         public CustomTool[] getInstallations() {
             return JenkinsHelper.getInstanceOrDie().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
         }
-        
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject json)
-                throws hudson.model.Descriptor.FormException {
-            //TODO: Auto-generated method stub
-            return super.configure(req, json);
-        }     
-    }    
+    }
 }
 
