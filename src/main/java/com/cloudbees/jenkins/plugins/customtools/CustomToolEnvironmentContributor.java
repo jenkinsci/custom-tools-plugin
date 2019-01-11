@@ -12,7 +12,6 @@ import hudson.Util;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import java.io.StringReader;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -29,7 +28,6 @@ public class CustomToolEnvironmentContributor extends EnvironmentContributor {
     @Override
     public void buildEnvironmentFor(Run r, EnvVars envs, TaskListener listener)
         throws IOException, InterruptedException {
-        Map<String, String> result = new LinkedHashMap<String, String>();
         Properties properties = new Properties();
 
         CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
@@ -38,19 +36,21 @@ public class CustomToolEnvironmentContributor extends EnvironmentContributor {
                 envs.put(tool.getName().toUpperCase(Locale.ENGLISH) +"_HOME", String.valueOf(tool.getHome()));
             }
             if (tool.hasAdditionalVariables()){
-                String additionalVars = tool.getAdditionalVariables();
-                String escapedAdditionalVars = additionalVars;
-                escapedAdditionalVars = escapedAdditionalVars.replaceAll("(?<=[^\\\\])\\\\(?=[^n])(?=[^\\\\])(?=[^\n])", "\\\\\\\\");
-                StringReader stringReader = new StringReader(escapedAdditionalVars);
-                try {
-                    properties.load(stringReader);
-                } catch (IOException ioe) {
-                    throw new CustomToolException("Problem occurs on loading additional string content", ioe);
-                } finally {
-                    stringReader.close();
-                }
-                for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-                    envs.put(processElement(entry.getKey(), envs), processElement(entry.getValue(), envs));
+
+                String additionalVariables = tool.getAdditionalVariables();
+                if (additionalVariables != null) {
+                    additionalVariables = additionalVariables.replaceAll("(?<=[^\\\\])\\\\(?=[^n])(?=[^\\\\])(?=[^\n])", "\\\\\\\\");
+                    StringReader stringReader = new StringReader(additionalVariables);
+                    try {
+                        properties.load(stringReader);
+                    } catch (IOException ioe) {
+                        throw new CustomToolException("Problem occurs on loading additional string content", ioe);
+                    } finally {
+                        stringReader.close();
+                    }
+                    for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                        envs.put(processElement(entry.getKey(), envs), processElement(entry.getValue(), envs));
+                    }
                 }
             }
         }
