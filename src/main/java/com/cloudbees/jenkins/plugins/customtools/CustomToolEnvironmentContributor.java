@@ -39,8 +39,11 @@ public class CustomToolEnvironmentContributor extends EnvironmentContributor {
 
                 String additionalVariables = tool.getAdditionalVariables();
                 if (additionalVariables != null) {
+                    //Regex to escape any single \ characters which are not before \ or n. This is puilled from ENVinject plugin
                     additionalVariables = additionalVariables.replaceAll("(?<=[^\\\\])\\\\(?=[^n])(?=[^\\\\])(?=[^\n])", "\\\\\\\\");
                     StringReader stringReader = new StringReader(additionalVariables);
+                    //TO DO: Eventually update this to be try with resources but this plugin is compiled against old versions
+                    //of Jenkins so we can not guarantee Java 7
                     try {
                         properties.load(stringReader);
                     } catch (IOException ioe) {
