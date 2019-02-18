@@ -218,7 +218,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             homes.put(homeDirVarName, installed.getHome());
         }
 
-        return new DecoratedLauncher(launcher) {                    
+        return new Launcher.DecoratedLauncher(launcher) {
             @Override
             public Proc launch(ProcStarter starter) throws IOException {           
                 EnvVars vars;
