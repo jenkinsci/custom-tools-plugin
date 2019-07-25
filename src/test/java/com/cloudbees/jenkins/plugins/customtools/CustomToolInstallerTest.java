@@ -15,6 +15,7 @@
  */
 
 package com.cloudbees.jenkins.plugins.customtools;
+
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
@@ -29,6 +30,7 @@ import hudson.tools.CommandInstaller;
 import hudson.tools.InstallSourceProperty;
 import hudson.tools.ToolInstallation;
 import hudson.util.StreamTaskListener;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,7 +41,6 @@ import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
 import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
-import jenkins.plugins.customtools.util.JenkinsHelper;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +57,7 @@ public class CustomToolInstallerTest {
 
     @Test
     public void testSmoke() throws IOException, InterruptedException {
-        VirtualChannel channel = JenkinsHelper.getInstanceOrDie().getChannel();
+        VirtualChannel channel = Jenkins.getActiveInstance().getChannel();
         EnvVars envVars = new EnvVars();
         
         
