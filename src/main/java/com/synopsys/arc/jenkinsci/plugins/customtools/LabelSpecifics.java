@@ -25,8 +25,7 @@ import hudson.model.Node;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
-import jenkins.plugins.customtools.util.JenkinsHelper;
+import jenkins.model.Jenkins;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -75,7 +74,7 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
             return true;
         }
         
-        Label l = JenkinsHelper.getInstanceOrDie().getLabel(label);
+        Label l = Jenkins.getActiveInstance().getLabel(label);
         return l == null || l.contains(node);
     }
     

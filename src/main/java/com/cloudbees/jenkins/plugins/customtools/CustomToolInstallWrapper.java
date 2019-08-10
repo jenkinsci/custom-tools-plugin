@@ -39,7 +39,6 @@ import hudson.model.Node;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,8 +46,7 @@ import java.util.Locale;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import jenkins.plugins.customtools.util.JenkinsHelper;
-
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -84,7 +82,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         public @CheckForNull CustomTool toCustomTool() {
-            return ((CustomTool.DescriptorImpl)JenkinsHelper.getInstanceOrDie().getDescriptor(CustomTool.class)).byName(name);
+            return ((CustomTool.DescriptorImpl)Jenkins.getActiveInstance().getDescriptor(CustomTool.class)).byName(name);
         }
         
         public @Nonnull CustomTool toCustomToolValidated() throws CustomToolException {
@@ -220,7 +218,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             homes.put(homeDirVarName, installed.getHome());
         }
 
-        return new DecoratedLauncher(launcher) {                    
+        return new Launcher.DecoratedLauncher(launcher) {
             @Override
             public Proc launch(ProcStarter starter) throws IOException {           
                 EnvVars vars;
@@ -351,7 +349,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         public CustomTool[] getInstallations() {
-            return JenkinsHelper.getInstanceOrDie().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
+            return Jenkins.getActiveInstance().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
         }
     }
 }
