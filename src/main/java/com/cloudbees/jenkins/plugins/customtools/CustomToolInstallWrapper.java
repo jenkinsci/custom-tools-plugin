@@ -39,6 +39,7 @@ import hudson.model.Node;
 import hudson.model.Run.RunnerAbortedException;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
+import hudson.tools.ToolInstallation;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +47,6 @@ import java.util.Locale;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -82,7 +82,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         public @CheckForNull CustomTool toCustomTool() {
-            return ((CustomTool.DescriptorImpl)Jenkins.getActiveInstance().getDescriptor(CustomTool.class)).byName(name);
+            CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
+            return tools != null ? tools.byName(name) : null;
         }
         
         public @Nonnull CustomTool toCustomToolValidated() throws CustomToolException {
@@ -349,7 +350,8 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         }
         
         public CustomTool[] getInstallations() {
-            return Jenkins.getActiveInstance().getDescriptorByType(CustomTool.DescriptorImpl.class).getInstallations();
+            CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
+            return tools != null ? tools.getInstallations() : new CustomTool[0];
         }
     }
 }

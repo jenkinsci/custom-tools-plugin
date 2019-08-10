@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.37</version>
+    <version>3.48</version>
   </parent>
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
@@ -44,9 +44,8 @@
   </scm>
 
   <properties>
-    <jenkins.version>1.609.3</jenkins.version>
-    <java.level>6</java.level>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jenkins.version>2.60.3</jenkins.version>
+    <java.level>8</java.level>
   </properties>
 
   <dependencies>
