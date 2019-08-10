@@ -22,7 +22,6 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
 import hudson.cli.CLICommand;
 import hudson.model.ParameterDefinition;
-import hudson.model.ParameterDefinition.ParameterDescriptor;
 import hudson.model.ParameterValue;
 import hudson.model.StringParameterValue;
 import hudson.tools.ToolInstallation;
@@ -58,8 +57,8 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
      * @return A custom tool or null if it has not been found
      */
     public final @CheckForNull CustomTool getTool() {
-        CustomTool.DescriptorImpl tool = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
-        return tool.byName(toolName);
+        CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
+        return tools != null ? tools.byName(toolName) : null;
     }
     
     /**
