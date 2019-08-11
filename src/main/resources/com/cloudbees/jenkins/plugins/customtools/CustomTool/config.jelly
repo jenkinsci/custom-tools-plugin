@@ -22,33 +22,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <st:documentation>
-    
-  </st:documentation>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
   <f:entry title="${%Name}" field="name">
     <f:textbox/>
   </f:entry>
   <f:advanced title="${%Custom Tool Configuration}" align="left">
-      <f:entry title="${%Exported paths}" field="exportedPaths">
-          <f:textbox/>
-      </f:entry>
-      <f:entry title="${%Installation directory}" field="home">
-          <f:textbox/>
-      </f:entry>
-      <f:entry title="${%Exported variables}" field="additionalVariables">
-          <f:textarea/>
-          <f:description>Variables with macro support. *.prop file format</f:description>
-      </f:entry>
-      <f:entry title="${%Label-specific options}">
-          <f:repeatableProperty name="labelSpecifics" header="${%Label specific}" add="${%Add label}" var="labelSpecific" field="labelSpecifics">                                      
-          </f:repeatableProperty>
-      </f:entry>       
-      <f:optionalProperty
-          name="versioning" 
-          title="${%Enable Versions}" checked="${instance.hasVersions()}"
-          help="/plugin/custom-tools-plugin/CustomTool/help-versioning.html"
-          field="toolVersion">
-      </f:optionalProperty> 
+    <f:entry title="${%Exported paths}" field="exportedPaths">
+      <f:textbox/>
+    </f:entry>
+    <f:entry title="${%Installation directory}" field="home">
+      <f:textbox/>
+    </f:entry>
+    <f:entry title="${%Exported variables}" field="additionalVariables">
+      <f:textarea/>
+      <f:description>Variables with macro support. *.prop file format</f:description>
+    </f:entry>
+    <f:entry title="${%Label-specific options}">
+      <f:repeatableProperty name="labelSpecifics"
+                            field="labelSpecifics"
+                            header="${%Label specific}"
+                            add="${%Add label}"
+                            var="labelSpecific">
+      </f:repeatableProperty>
+    </f:entry>
+    <f:optionalProperty title="${%Enable Versions}"
+                        name="versioning"
+                        field="toolVersion"
+                        checked="${instance.hasVersions()}"
+                        help="/plugin/custom-tools-plugin/CustomTool/help-versioning.html">
+    </f:optionalProperty>
   </f:advanced>
- </j:jelly>
+</j:jelly>
