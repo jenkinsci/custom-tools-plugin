@@ -57,7 +57,7 @@ public class ToolVersionHelper {
      */
     public static @Nonnull List<CustomTool> getAllVersionedTools() {
         CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
-        List<CustomTool> res = new LinkedList<CustomTool>();
+        List<CustomTool> res = new LinkedList<>();
         if (tools != null ) {
             for (CustomTool tool : tools.getInstallations()) {
                 if (tool.hasVersions()) {

@@ -70,9 +70,9 @@ public class ToolVersionParameterDefinitionTest {
     
     private void setupVersionedTool() throws Exception {
         CustomTool.DescriptorImpl tools = j.jenkins.getDescriptorByType(CustomTool.DescriptorImpl.class);
-        List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
+        List<ToolInstaller> installers = new ArrayList<>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue", "./"));
-        List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
+        List<ToolProperty<ToolInstallation>> properties = new ArrayList<>();
         properties.add(new InstallSourceProperty(installers));
         CustomTool installation = new CustomTool(TEST_TOOL_NAME, null, properties, "./", null, versionConfig, null);
         tools.setInstallations(installation);

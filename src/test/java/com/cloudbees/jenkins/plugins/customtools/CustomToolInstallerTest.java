@@ -110,11 +110,11 @@ public class CustomToolInstallerTest {
     }
        
     public static CustomTool createTool(String name) throws IOException {
-        List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
+        List<ToolInstaller> installers = new ArrayList<>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue",
                 "./"));
 
-        List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
+        List<ToolProperty<ToolInstallation>> properties = new ArrayList<>();
         properties.add(new InstallSourceProperty(installers));
 
         return new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
@@ -122,10 +122,10 @@ public class CustomToolInstallerTest {
     
     //TODO: refactor and generalize
     private CustomTool createEnvPrinterTool(String name, LabelSpecifics[] specifics, String additionalVars) throws IOException {
-        List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
+        List<ToolInstaller> installers = new ArrayList<>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue", "./"));
 
-        List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
+        List<ToolProperty<ToolInstallation>> properties = new ArrayList<>();
         properties.add(new InstallSourceProperty(installers));
 
         return new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);

@@ -155,7 +155,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         final EnvVars versions = new EnvVars();
         
         final PathsList paths = new PathsList();
-        final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
+        final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<>();
         
         // Handle multi-configuration build
         if (build instanceof MatrixBuild) {  
