@@ -13,6 +13,11 @@ Using this plugin, you can define a script (or just a URL) for installing a tool
 Plugins like [Extra Tool Installers](https://plugins.jenkins.io/extra-tool-installers) can be also used in this plugin. 
 You then define which jobs require the tool, and the plugin installs them as needed before the build runs.
 
+## Changelog
+
+* See [GitHub Releases](https://github.com/jenkinsci/custom-tools-plugin/releases) for version 0.7 and above
+* See the [Plugin Wiki](https://wiki.jenkins.io/display/JENKINS/Custom+Tools+Plugin) for older releases
+
 ## Usage
 
 ### Defining tools
