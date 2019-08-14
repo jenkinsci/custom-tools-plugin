@@ -1,6 +1,10 @@
 Custom Tools Plugin for Jenkins
 ==================
 
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/custom-tools-plugin.svg)](https://plugins.jenkins.io/custom-tools-plugin)
+[![GitHub release](https://img.shields.io/github/release/jenkinsci/custom-tools-plugin.svg?label=changelog)](https://github.com/jenkinsci/custom-tools-plugin/releases/latest)
+[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/custom-tools-plugin.svg?color=blue)](https://plugins.jenkins.io/custom-tools-plugin)
+
 A generic tool installer. You define how tools get installed, and the plugin will automatically install them when needed. 
 
 ## Overview 
