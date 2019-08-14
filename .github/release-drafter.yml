@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: custom-tools-plugin-$NEXT_MINOR_VERSION
