@@ -42,3 +42,35 @@ The plugin will install it as needed before your job runs, and make sure the `$P
 
 ### Tool versioning
 
+Custom Tools plugin supports versioning of tools.
+Versions can be configured in the global configurations and then used to install specific versions of tools in Jenkins jobs.
+
+| WARNING:  This feature is a subject to the breacking changes in the future. See [JENKINS-32662](https://issues.jenkins-ci.org/browse/JENKINS-32662) for more info |
+| --- |
+
+#### Configuring Tool versions
+
+Currently the plugin uses the functionality provided by the [Extended Choice Parameter plugin](https://plugins.jenkins.io/extended-choice-parameter), 
+but it's a subject for a change in the future. 
+Extended Choice Parameter plugin allows to setup versions locally in the global configuration or to reference a property file with the version listing.
+
+If a _Custom Tool_ has versioning enabled, Custom Tools starts retrieving versions during the tool installation.
+Version configuration example:
+
+![Tool Version Configuration](/docs/images/versions_Configuration.png)
+
+Some tool installers support TOOL_VERSION variables (e.g. all installers from [Extra Tool Installers Plugin](https://plugins.jenkins.io/extra-tool-installers), so you can use versions in the installator configurations.
+
+![Using Tool Versions in Installers](/docs/images/versions_usageInInstaller.png)
+
+#### Tool Version parameters
+
+_Tool version_ parameter is available for Jenkins jobs. 
+If it is not specified, a default version will be used.
+
+![Tool Version Parameter Definition](/docs/images/versions_ParameterDefinition.png)
+
+Defining version parameter when starting a build:
+
+![Tool Version Parameter Usage](/docs/images/versions_Parameter.png)
+
