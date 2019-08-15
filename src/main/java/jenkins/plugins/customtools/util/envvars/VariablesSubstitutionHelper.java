@@ -99,7 +99,7 @@ public abstract class VariablesSubstitutionHelper {
      */
     private String substituteNodeProperty(@CheckForNull String macroString, @CheckForNull NodeProperty<?> property) {
         // Get environment variables
-        if (property != null && property instanceof EnvironmentVariablesNodeProperty) {
+        if (property instanceof EnvironmentVariablesNodeProperty) {
            EnvironmentVariablesNodeProperty prop = (EnvironmentVariablesNodeProperty)property;
            return resolveVariable(macroString, prop.getEnvVars());
         }

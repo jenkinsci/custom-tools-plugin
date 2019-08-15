@@ -51,7 +51,7 @@ public class CustomToolInstallWrapperTest {
      */
     @Test
     public void testNestedWrapper() throws Exception {
-        List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(2);
+        List<BuildWrapper> wrappers = new ArrayList<>(2);
         wrappers.add(new StubWrapper());
         wrappers.add(setupCustomToolsWrapper());
         nestedWrapperTestImpl(wrappers, true);
@@ -63,7 +63,7 @@ public class CustomToolInstallWrapperTest {
      */
     @Test
     public void testNestedWrapperReverse() throws Exception {
-        List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(2);
+        List<BuildWrapper> wrappers = new ArrayList<>(2);
         wrappers.add(setupCustomToolsWrapper());
         wrappers.add(new StubWrapper());       
         nestedWrapperTestImpl(wrappers, true);
@@ -79,7 +79,7 @@ public class CustomToolInstallWrapperTest {
     @Test
     @Issue("JENKINS-19506")
     public void testNestedLauncherCalls() throws Exception {
-        List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(2);
+        List<BuildWrapper> wrappers = new ArrayList<>(2);
         wrappers.add(new CommandCallerInstaller());  
         wrappers.add(setupCustomToolsWrapper());     
         nestedWrapperTestImpl(wrappers, false);
@@ -88,7 +88,7 @@ public class CustomToolInstallWrapperTest {
     @Test
     @Issue("JENKINS-20560")
     public void testEmptyToolsList() throws Exception {
-        List<BuildWrapper> wrappers = new ArrayList<BuildWrapper>(0); 
+        List<BuildWrapper> wrappers = new ArrayList<>(0);
         wrappers.add(new CommandCallerInstaller());
         wrappers.add(new CustomToolInstallWrapper(null, MulticonfigWrapperOptions.DEFAULT, false));
         nestedWrapperTestImpl(wrappers, false);

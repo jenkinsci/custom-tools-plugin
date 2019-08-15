@@ -198,7 +198,7 @@ public class CustomTool extends ToolInstallation implements
      * @since 0.3
      */
     public @Nonnull List<LabelSpecifics> getAppliedSpecifics(@Nonnull Node node) {
-        List<LabelSpecifics> out = new LinkedList<LabelSpecifics>();
+        List<LabelSpecifics> out = new LinkedList<>();
         if (labelSpecifics != null) {
             for (LabelSpecifics spec : labelSpecifics) {
                 if (spec.appliesTo(node)) {
@@ -283,7 +283,7 @@ public class CustomTool extends ToolInstallation implements
                     throws IOException, InterruptedException {           
                 
                 // Construct output paths
-                List<String> items = new LinkedList<String>();
+                List<String> items = new LinkedList<>();
                 if (exportedPaths != null) {
                     parseLists(exportedPaths, items);
                 }
@@ -295,7 +295,7 @@ public class CustomTool extends ToolInstallation implements
                 }
                              
                 // Resolve exported paths
-                List<String> outList = new LinkedList<String>();
+                List<String> outList = new LinkedList<>();
                 for (String item : items) {    
                     File file = new File(item);
                     if (!file.isAbsolute()) {
