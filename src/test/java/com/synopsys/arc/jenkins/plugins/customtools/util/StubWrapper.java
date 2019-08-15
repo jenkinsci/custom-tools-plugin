@@ -44,7 +44,7 @@ public class StubWrapper extends BuildWrapper {
     @Override
     public Launcher decorateLauncher(AbstractBuild build, Launcher launcher, BuildListener listener)
             throws IOException, InterruptedException, Run.RunnerAbortedException {
-      
+
         return new Launcher.LocalLauncher(listener) {
             @Override
             public Proc launch(Launcher.ProcStarter ps) throws IOException {
@@ -52,7 +52,7 @@ public class StubWrapper extends BuildWrapper {
                 envs.put(SCRIPT_TESTVAR_NAME, SCRIPT_TESTVAR_VALUE);
                 return super.launch(ps.envs(Util.mapToEnv(envs)));
             }
-            
+
             private EnvVars toEnvVars(String[] envs) {
                 EnvVars vars = new EnvVars();
                 for (String line : envs) {
@@ -62,7 +62,7 @@ public class StubWrapper extends BuildWrapper {
             }
         };
     }
-    
+
     @Extension
     public static class DescriptorImpl extends BuildWrapperDescriptor {
         @Override
@@ -73,15 +73,15 @@ public class StubWrapper extends BuildWrapper {
         @Override
         public boolean isApplicable(AbstractProject<?, ?> ap) {
             return true;
-        }     
+        }
     }
-    
+
     @Override
     public Environment setUp(AbstractBuild build, Launcher launcher,
-            BuildListener listener) throws IOException, InterruptedException {       
-        return new Environment(){            
+            BuildListener listener) throws IOException, InterruptedException {
+        return new Environment(){
             @Override
-            public void buildEnvVars(Map<String, String> env) {          
+            public void buildEnvVars(Map<String, String> env) {
                 env.put(ENV_TESTVAR_NAME, ENV_TESTVAR_VALUE);
             }
         };

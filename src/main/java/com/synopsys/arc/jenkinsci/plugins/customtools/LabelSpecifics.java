@@ -35,22 +35,22 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @since 0.3
  */
 public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> implements Serializable {
-    
+
     private final @CheckForNull String label;
     private final @CheckForNull String additionalVars;
     private final @CheckForNull String exportedPaths;
-    
+
     @DataBoundConstructor
     public LabelSpecifics(@CheckForNull String label, @CheckForNull String additionalVars, @CheckForNull String exportedPaths) {
         this.label = Util.fixEmptyAndTrim(label);
         this.additionalVars = additionalVars;
         this.exportedPaths = exportedPaths;
     }
-    
+
     public @CheckForNull String getAdditionalVars() {
         return additionalVars;
     }
-    
+
      public boolean hasAdditionalVars() {
         return additionalVars != null;
     }
@@ -62,9 +62,9 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
     public @CheckForNull String getExportedPaths() {
         return exportedPaths;
     }
-    
+
     /**
-     * Check if specifics is applicable to node 
+     * Check if specifics is applicable to node
      * @param node Node to be checked
      * @return True if specifics is applicable to node
      */
@@ -73,23 +73,23 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         if (correctedLabel == null) {
             return true;
         }
-        
+
         Label l = Jenkins.getActiveInstance().getLabel(label);
         return l == null || l.contains(node);
     }
-    
+
     public @Nonnull LabelSpecifics substitute(@Nonnull EnvVars vars) {
-        return new LabelSpecifics(label, 
+        return new LabelSpecifics(label,
                 VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVars, vars),
                 VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, vars));
     }
-    
+
     public @Nonnull LabelSpecifics substitute(@Nonnull Node node) {
-        return new LabelSpecifics(label, 
+        return new LabelSpecifics(label,
                 VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVars, node),
                 VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, node));
     }
-    
+
     public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, @Nonnull EnvVars vars) {
         LabelSpecifics[] out = new LabelSpecifics[specifics.length];
         for (int i=0; i<specifics.length; i++) {
@@ -97,7 +97,7 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         }
         return out;
     }
-    
+
     public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, Node node) {
         LabelSpecifics[] out = new LabelSpecifics[specifics.length];
         for (int i=0; i<specifics.length; i++) {
@@ -112,5 +112,5 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         public String getDisplayName() {
             return Messages.LabelSpecifics_DisplayName();
         }
-    }  
+    }
 }

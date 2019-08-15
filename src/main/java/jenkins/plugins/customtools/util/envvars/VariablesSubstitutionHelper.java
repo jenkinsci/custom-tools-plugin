@@ -35,20 +35,20 @@ import jenkins.model.Jenkins;
  * @author Oleg Nenashev
  */
 public abstract class VariablesSubstitutionHelper {
-    
+
     public static final VariablesSubstitutionHelper PROP_FILE = new PropFileVariablesSubstitutionHelper();
     public static final VariablesSubstitutionHelper PATH = new SimpleVariablesSubstitutionHelper();
-    
+
     /**
      * Escapes variable values for the required format.
      * @param variableName Name of the variable, which is being substituted
      * @param rawValue Input value
      * @return Escaped value
      */
-    public String escapeVariableValue(String variableName, String rawValue) {       
+    public String escapeVariableValue(String variableName, String rawValue) {
         return rawValue;
     }
-    
+
     /**
      * Resolves tools installation directory using global variables.
      * @param environment Collection of environment variables
@@ -57,10 +57,10 @@ public abstract class VariablesSubstitutionHelper {
      * @since 0.3
      */
     public String resolveVariable(@CheckForNull String inputValue, @Nonnull EnvVars environment)  {
-        if (inputValue == null || !hasMacros(inputValue)) 
-            return inputValue;    
-        
-        // Substitute parameters      
+        if (inputValue == null || !hasMacros(inputValue))
+            return inputValue;
+
+        // Substitute parameters
         String substitutedString = inputValue;
         for (Map.Entry<String,String> entry : environment.entrySet()) {
             if (hasMacros(inputValue, entry.getKey())) {
@@ -68,28 +68,28 @@ public abstract class VariablesSubstitutionHelper {
                 substitutedString = substitutedString.replace("${" + entry.getKey() + "}", escapedValue);
             }
         }
-             
-        return substitutedString;     
+
+        return substitutedString;
     }
-    
+
     public String resolveVariable(@CheckForNull String inputValue, @Nonnull Node node) {
-        if (!hasMacros(inputValue)) 
+        if (!hasMacros(inputValue))
             return inputValue;
-        
+
         // Check node properties
         String substitutedString = inputValue;
         for (NodeProperty<?> entry : node.getNodeProperties()) {
             substitutedString = substituteNodeProperty(substitutedString, entry);
-        }    
-        
+        }
+
         // Substitute global variables
         for (NodeProperty<?> entry : Jenkins.getActiveInstance().getGlobalNodeProperties()) {
             substitutedString = substituteNodeProperty(substitutedString, entry);
-        } 
-        
+        }
+
         return substitutedString;
-    }  
-    
+    }
+
     /**
      * Substitutes string according to node property.
      * @param macroString String to be substituted
@@ -103,23 +103,23 @@ public abstract class VariablesSubstitutionHelper {
            EnvironmentVariablesNodeProperty prop = (EnvironmentVariablesNodeProperty)property;
            return resolveVariable(macroString, prop.getEnvVars());
         }
-        
+
         //TODO: add support of other configuration entries or propagate environments
         return macroString;
     }
-    
+
     public static boolean hasMacros(@CheckForNull String inputString) {
         return inputString != null && inputString.contains("${");
     }
-    
+
     public static boolean hasMacros(@CheckForNull String inputString, String macroName) {
         return inputString != null && inputString.contains("${" + macroName + "}");
     }
-    
+
     public static class SimpleVariablesSubstitutionHelper extends VariablesSubstitutionHelper {
-        
+
     }
-    
+
     public static class PropFileVariablesSubstitutionHelper extends VariablesSubstitutionHelper {
 
         @Override
@@ -134,12 +134,12 @@ public abstract class VariablesSubstitutionHelper {
                 //TODO: Really???
                 return super.escapeVariableValue(variableName, rawValue);
             }
-            
+
             try {
                 return str.toString("UTF-8").split("\n")[2].replaceFirst(".*TMP=", "").trim();
             } catch (UnsupportedEncodingException ex) {
                 throw new IllegalStateException("UTF-8 encoding is not supported", ex);
             }
-        }       
+        }
     }
 }

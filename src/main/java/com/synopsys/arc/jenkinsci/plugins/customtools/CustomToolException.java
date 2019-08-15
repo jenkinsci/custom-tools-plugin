@@ -25,7 +25,7 @@ import java.io.IOException;
 public class CustomToolException extends IOException {
     public CustomToolException(String message) {
         super(message);
-    }    
+    }
 
     public CustomToolException(Throwable cause) {
         super(cause);
@@ -33,5 +33,5 @@ public class CustomToolException extends IOException {
 
     public CustomToolException(String message, Throwable cause) {
         super(message, cause);
-    }   
+    }
 }

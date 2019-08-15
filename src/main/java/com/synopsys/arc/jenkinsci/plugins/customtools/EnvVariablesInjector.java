@@ -32,9 +32,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
  * @since  0.3
  */
 public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.Entity>
-{    
+{
     private EnvVariablesInjector(){}
-     
+
     /**
      * @deprecated Use {@link #create(java.lang.String)} instead.
      * This method will be removed in future versions.
@@ -43,7 +43,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
     public static @Nonnull EnvVariablesInjector Create(@Nonnull String props) throws IOException {
         return create(props);
     }
-    
+
     /**
      * Creates a new injector for the specified properties.
      * @param props Properties in Java Properties format
@@ -52,18 +52,18 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
      */
     public static @Nonnull EnvVariablesInjector create(@Nonnull String props) throws IOException {
         Properties prop = new Properties();
-        StringReader rdr = new StringReader(props);       
+        StringReader rdr = new StringReader(props);
         prop.load(rdr);
-        
+
         EnvVariablesInjector vars = new EnvVariablesInjector();
-        for (Entry<Object,Object> entry: prop.entrySet()) {     
+        for (Entry<Object,Object> entry: prop.entrySet()) {
             String varName = (String)entry.getKey();
             Entity ent = new Entity(varName, (String)entry.getValue());
             vars.put(varName, ent);
-        }        
+        }
         return vars;
     }
-    
+
     /**
      * @deprecated Use {@link #injectVariables(hudson.EnvVars)} instead.
      * This method will be removed in future versions.
@@ -72,7 +72,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
     public void Inject(EnvVars target) throws IOException {
         injectVariables(target);
     }
-    
+
     /**
      * Inject variables into EnvVars
      * @param target Target variables
@@ -82,8 +82,8 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         for (Entry<String, EnvVariablesInjector.Entity> entry: entrySet()) {
             entry.getValue().injectVariables(target);
         }
-    } 
-    
+    }
+
     /**
      * Internal entry, which describes modification of Environment Variables
      */
@@ -94,36 +94,36 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         public String envName;
         public String envValue;
         public final static String DEFAULT_LIST_DELIMITER=",";
-               
+
         @Deprecated
         public String listDelimiter;
         @Deprecated
         public boolean isList;
         @Deprecated
-        public boolean isOverrides;     
-        
+        public boolean isOverrides;
+
         public Entity(String envName, String envValue) {
             this(envName, envValue, DEFAULT_LIST_DELIMITER, false, true);
         }
-        
+
         /**
          * @deprecated Not implemented in 0.3
          * @param envName
          * @param envValue
          * @param listDelimiter
          * @param isList
-         * @param isOverrides 
+         * @param isOverrides
          */
-        public Entity(String envName, String envValue, String listDelimiter, 
+        public Entity(String envName, String envValue, String listDelimiter,
                 boolean isList, boolean isOverrides)
         {
             this.envName = envName;
             this.envValue = envValue;
          //   this.listDelimiter = listDelimiter;
          //   this.isList = isList;
-         //   this.isOverrides = isOverrides;         
+         //   this.isOverrides = isOverrides;
         }
-        
+
        /**
         * @deprecated Use {@link #injectVariables(hudson.EnvVars)} instead.
         * This method will be removed in future versions.
@@ -131,8 +131,8 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
        public void Inject(@Nonnull EnvVars target) throws IOException {
            injectVariables(target);
-       } 
-        
+       }
+
        /**
         * Inject variables into EnvVars
         * @param target Target environment
@@ -140,7 +140,7 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
         */
         public void injectVariables(@Nonnull EnvVars target) throws IOException {
             //TODO: check overrides
-            //TODO: check lists 
+            //TODO: check lists
             //TODO: substitute, check, etc.
 
             // Substitute current envValue
@@ -149,5 +149,5 @@ public class EnvVariablesInjector extends TreeMap<String, EnvVariablesInjector.E
 
             target.put(envName, newEnvValue);
         }
-    }  
+    }
 }

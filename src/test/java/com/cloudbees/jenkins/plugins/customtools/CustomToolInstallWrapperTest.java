@@ -39,12 +39,12 @@ import org.jvnet.hudson.test.JenkinsRule;
  * @author Oleg Nenashev
  */
 public class CustomToolInstallWrapperTest {
-    
+
     @Rule
     public JenkinsRule j = new JenkinsRule();
-    
+
     private static final String NON_EXISTENT_TOOL = "non-existent";
-        
+
     /**
      * Inserts {@link CustomToolInstallWrapper} after {@link StubWrapper}.
      * @throws Exception Test failure
@@ -56,7 +56,7 @@ public class CustomToolInstallWrapperTest {
         wrappers.add(setupCustomToolsWrapper());
         nestedWrapperTestImpl(wrappers, true);
     }
-       
+
     /**
      * Inserts {@link StubWrapper} after {@link CustomToolInstallWrapper}.
      * @throws Exception Test failure
@@ -65,12 +65,12 @@ public class CustomToolInstallWrapperTest {
     public void testNestedWrapperReverse() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<>(2);
         wrappers.add(setupCustomToolsWrapper());
-        wrappers.add(new StubWrapper());       
+        wrappers.add(new StubWrapper());
         nestedWrapperTestImpl(wrappers, true);
     }
-    
-    
-    
+
+
+
     /**
      * Tests custom tools with wrapper, which calls wrapper without
      * specifying of envs.
@@ -80,11 +80,11 @@ public class CustomToolInstallWrapperTest {
     @Issue("JENKINS-19506")
     public void testNestedLauncherCalls() throws Exception {
         List<BuildWrapper> wrappers = new ArrayList<>(2);
-        wrappers.add(new CommandCallerInstaller());  
-        wrappers.add(setupCustomToolsWrapper());     
+        wrappers.add(new CommandCallerInstaller());
+        wrappers.add(setupCustomToolsWrapper());
         nestedWrapperTestImpl(wrappers, false);
     }
-    
+
     @Test
     @Issue("JENKINS-20560")
     public void testEmptyToolsList() throws Exception {
@@ -93,58 +93,58 @@ public class CustomToolInstallWrapperTest {
         wrappers.add(new CustomToolInstallWrapper(null, MulticonfigWrapperOptions.DEFAULT, false));
         nestedWrapperTestImpl(wrappers, false);
     }
-    
+
     @Test
     public void testDeletedTool() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject();
-        
-        CustomToolInstallWrapper.SelectedTool[] tools = 
-                new CustomToolInstallWrapper.SelectedTool[] { 
+
+        CustomToolInstallWrapper.SelectedTool[] tools =
+                new CustomToolInstallWrapper.SelectedTool[] {
                     new CustomToolInstallWrapper.SelectedTool(NON_EXISTENT_TOOL)
                 };
-        
+
         project.getBuildWrappersList().add(
                 new CustomToolInstallWrapper(tools, MulticonfigWrapperOptions.DEFAULT, false));
-        
+
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
         j.assertBuildStatus(Result.FAILURE, build.get());
-        j.assertLogContains( 
+        j.assertLogContains(
                 Messages.CustomTool_GetToolByName_ErrorMessage(NON_EXISTENT_TOOL), build.get());
     }
-    
+
     /**
      * Implements tests for nested wrappers.
      * The test checks that environment variables have been set correctly.
      * It also expects existence of {@link StubWrapper} in the wrappers list.
      */
-    private void nestedWrapperTestImpl(List<BuildWrapper> wrappers, boolean checkEnvironment) throws Exception {      
+    private void nestedWrapperTestImpl(List<BuildWrapper> wrappers, boolean checkEnvironment) throws Exception {
         j.jenkins.setNumExecutors(0);
         j.createSlave();
-        
+
         // Create test project
-        FreeStyleProject project = j.createFreeStyleProject();        
-        project.getBuildWrappersList().addAll(wrappers);   
-        
+        FreeStyleProject project = j.createFreeStyleProject();
+        project.getBuildWrappersList().addAll(wrappers);
+
         if (checkEnvironment) {
             project.getBuildersList().add(checkVariableBuilder(StubWrapper.ENV_TESTVAR_NAME, StubWrapper.ENV_TESTVAR_VALUE));
             project.getBuildersList().add(checkVariableBuilder(StubWrapper.SCRIPT_TESTVAR_NAME, StubWrapper.SCRIPT_TESTVAR_VALUE));
         }
-        
+
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
         j.assertBuildStatusSuccess(build);
     }
-    
-    private CustomToolInstallWrapper setupCustomToolsWrapper() 
+
+    private CustomToolInstallWrapper setupCustomToolsWrapper()
             throws IOException {
         CustomTool.DescriptorImpl tools = j.jenkins.getDescriptorByType(CustomTool.DescriptorImpl.class);
         tools.setInstallations(CustomToolInstallerTest.createTool("MyTrue"));
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
-        
+
         return new CustomToolInstallWrapper(
-                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, 
+                new CustomToolInstallWrapper.SelectedTool[] { selectedTool },
                 MulticonfigWrapperOptions.DEFAULT, false);
-    }   
-    
+    }
+
     private Builder checkVariableBuilder(String varName, String varValue) {
         return new Shell("env \nif [ \"$"+ varName+"\" != \""+
                 varValue + "\" ] ; then \n  echo Test failed \n  exit -1 \n" +

@@ -31,18 +31,18 @@ import javax.annotation.Nonnull;
 public class ToolVersionHelper {
     public static ExtendedChoiceParameterDefinition getDefaultVersionDescr(String toolName) {
         return new ExtendedChoiceParameterDefinition(
-                getDefaultVersionVariableName(toolName), 
+                getDefaultVersionVariableName(toolName),
                 ExtendedChoiceParameterDefinition.PARAMETER_TYPE_TEXT_BOX,
                 "default", null, null,
-                "default", null, null, 
+                "default", null, null,
                 false, 1, "Default version stub"
                 );
     }
-    
+
     public static String getDefaultVersionVariableName(String toolName) {
-        return toolName.toUpperCase(Locale.ENGLISH).replaceAll("\\s+", "_");        
+        return toolName.toUpperCase(Locale.ENGLISH).replaceAll("\\s+", "_");
     }
-    
+
     public static ExtendedChoiceParameterDefinition getVersionDescr(String toolName) {
         CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
         CustomTool tool = tools != null ? tools.byName(toolName) : null;
@@ -50,7 +50,7 @@ public class ToolVersionHelper {
 
         return toolVersionConfig != null ? toolVersionConfig.getVersionsListSource() : getDefaultVersionDescr(toolName);
     }
-    
+
     /**
      * Gets list of versioned tools.
      * @return List of tools, which have versions specified

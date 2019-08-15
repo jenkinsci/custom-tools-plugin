@@ -22,13 +22,13 @@ import javax.annotation.CheckForNull;
  * @author Oleg Nenashev
  */
 public class ArrayHelper {
-    
+
     /**
-     * Merges two arrays 
+     * Merges two arrays
      * @param <TItemType> Type of the items
      * @param first First array
      * @param second Second array
-     * @return 
+     * @return
      */
     @CheckForNull
     public static <TItemType> TItemType[] merge(@CheckForNull TItemType[] first, @CheckForNull TItemType[] second) {
@@ -39,7 +39,7 @@ public class ArrayHelper {
         if (second == null) {
             return first;
         }
-        
+
         // Handle two arrays
         TItemType[] result = Arrays.copyOf(first, first.length + second.length);
         System.arraycopy(second, 0, result, first.length, second.length);

@@ -52,9 +52,9 @@ public class PathsList implements Serializable {
     public PathsList() {
         this(new LinkedList<>(), null, null, null);
     }
-    
-    public PathsList(@Nonnull Collection<String> paths, 
-            @CheckForNull String pathSeparator, @CheckForNull String separator, 
+
+    public PathsList(@Nonnull Collection<String> paths,
+            @CheckForNull String pathSeparator, @CheckForNull String separator,
             @CheckForNull String homeDir) {
         this.paths = new ArrayList<>(paths);
         this.pathSeparator = pathSeparator;
@@ -65,11 +65,11 @@ public class PathsList implements Serializable {
     public @CheckForNull String getHomeDir() {
         return homeDir;
     }
-     
+
     public boolean add(@Nonnull String path) {
         return paths.add(path);
     }
-    
+
     /**
      * Adds PathsList and overrides null variables.
      * @param pathsList PathsList to be added
@@ -87,10 +87,10 @@ public class PathsList implements Serializable {
         if (pathsList.homeDir != null) {
             this.paths.add(pathsList.homeDir);
         }
-               
+
         return this.paths.addAll(pathsList.paths);
     }
-    
+
     /**
      * Gets the list of installed tools.
      * @return A list with valid delimiters or null if paths is empty
@@ -99,12 +99,12 @@ public class PathsList implements Serializable {
         if (paths.isEmpty()) {
             return null;
         }
-        
+
         StringBuilder builder = new StringBuilder();
-        for ( String path : paths) {         
+        for ( String path : paths) {
             builder.append(path);
             builder.append(pathSeparator);
-        }            
+        }
         return builder.toString();
     }
 }

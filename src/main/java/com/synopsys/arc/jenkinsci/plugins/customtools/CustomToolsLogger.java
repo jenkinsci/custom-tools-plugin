@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
  */
 public class CustomToolsLogger {
     public static final String LOG_PREFIX = "[CustomTools] - ";
-    
+
     /**
      * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String)}
      * instead.
@@ -35,7 +35,7 @@ public class CustomToolsLogger {
     public static void LogMessage(@Nonnull BuildListener listener, String message) {
         logMessage(listener, message);
     }
-    
+
     /**
      * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String, java.lang.String)}
      * instead.
@@ -44,11 +44,11 @@ public class CustomToolsLogger {
     public static void LogMessage(@Nonnull BuildListener listener, String toolName, String message) {
         logMessage(listener, toolName, message);
     }
-    
+
     public static void logMessage(@Nonnull BuildListener listener, String message) {
         listener.getLogger().println(CustomToolsLogger.LOG_PREFIX+message);
     }
-    
+
     public static void logMessage(@Nonnull BuildListener listener, String toolName, String message) {
         listener.getLogger().println(CustomToolsLogger.LOG_PREFIX+toolName+": "+message);
     }
