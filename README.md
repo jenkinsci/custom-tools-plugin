@@ -54,7 +54,7 @@ The plugin will install it as needed before your job runs, and make sure the `$P
 Custom Tools plugin supports versioning of tools.
 Versions can be configured in the global configurations and then used to install specific versions of tools in Jenkins jobs.
 
-| WARNING:  This feature is a subject to the breacking changes in the future. See [JENKINS-32662](https://issues.jenkins-ci.org/browse/JENKINS-32662) for more info |
+| WARNING:  This feature is a subject to the breaking changes in the future. See [JENKINS-32662](https://issues.jenkins-ci.org/browse/JENKINS-32662) for more info |
 | --- |
 
 #### Configuring Tool versions
@@ -68,7 +68,7 @@ Version configuration example:
 
 ![Tool Version Configuration](/docs/images/versions_Configuration.png)
 
-Some tool installers support TOOL_VERSION variables (e.g. all installers from [Extra Tool Installers Plugin](https://plugins.jenkins.io/extra-tool-installers), so you can use versions in the installator configurations.
+Some tool installers support TOOL_VERSION variables (e.g. all installers from [Extra Tool Installers Plugin](https://plugins.jenkins.io/extra-tool-installers), so you can use versions in the installer configurations.
 
 ![Using Tool Versions in Installers](/docs/images/versions_usageInInstaller.png)
 
