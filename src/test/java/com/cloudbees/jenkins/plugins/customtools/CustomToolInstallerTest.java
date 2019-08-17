@@ -46,6 +46,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import static org.junit.Assert.*;
+
 
 public class CustomToolInstallerTest {
 
@@ -107,6 +109,39 @@ public class CustomToolInstallerTest {
         project.getBuildersList().add(b);
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
         j.assertBuildStatusSuccess(build);          
+    }
+
+    //Testing Build.getEnvironment()
+    @Issue("JENKINS-53146")
+    @Test
+    public void testBuildEnvVars() throws Exception {
+        TaskListener listener = StreamTaskListener.fromStdout();
+        j.jenkins.setNumExecutors(0);
+        j.createSlave();
+        tools = j.jenkins.getDescriptorByType(CustomTool.DescriptorImpl.class);
+        List<ToolInstaller> installers = new ArrayList<ToolInstaller>();
+        installers.add(new CommandInstaller(null, "ln -s `which true` mytrue", "./"));
+        //Reused code from the createEnvPrinterTool but needed a specific home
+        List<ToolProperty<ToolInstallation>> properties = new ArrayList<ToolProperty<ToolInstallation>>();
+        properties.add(new InstallSourceProperty(installers));
+        tools.setInstallations(new CustomTool("MyTrue", "./", properties, "./", null, ToolVersionConfig.DEFAULT, "TEST_ADD_VAR=test\nTEST_ADD_VAR2=test2"));
+        FreeStyleProject project = j.createFreeStyleProject();
+        CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
+
+        CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
+                new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT, false);
+        project.getBuildWrappersList().add(wrapper);
+        Builder b = new Shell("echo $MYTRUE_HOME");
+        project.getBuildersList().add(b);
+        FreeStyleBuild build = j.buildAndAssertSuccess(project);
+        j.assertBuildStatusSuccess(build);
+        j.waitUntilNoActivity();
+        //Checking the ENV variables for the build to specifically find the Home values
+        EnvVars vars = build.getEnvironment(listener);
+        assertEquals("./", vars.get("MYTRUE_HOME"));
+        assertEquals("test", vars.get("TEST_ADD_VAR"));
+        assertEquals("test2", vars.get("TEST_ADD_VAR2"));
+
     }
        
     public static CustomTool createTool(String name) throws IOException {
