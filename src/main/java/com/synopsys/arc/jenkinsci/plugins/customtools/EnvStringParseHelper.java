@@ -31,11 +31,11 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
  */
 @Restricted(NoExternalUse.class)
 public class EnvStringParseHelper {
-    
+
     private EnvStringParseHelper() {}
-    
+
     private static final SimpleVariablesSubstitutionHelper HELPER = new VariablesSubstitutionHelper.SimpleVariablesSubstitutionHelper();
-         
+
     /**
      * Resolves tools installation directory using global variables.
      * @param inputString Input path with macro calls
@@ -43,19 +43,19 @@ public class EnvStringParseHelper {
      * @throws CustomToolException String validation failed
      * @since 0.3
      */
-    public static void checkStringForMacro(@CheckForNull String macroName, @CheckForNull String inputString) 
-            throws CustomToolException { 
+    public static void checkStringForMacro(@CheckForNull String macroName, @CheckForNull String inputString)
+            throws CustomToolException {
         if (HELPER.hasMacros(inputString)) {
            throw new CustomToolException("Can't resolve all variables in "+macroName+" string. Final state: "+inputString);
-        } 
+        }
     }
-    
+
     @Deprecated
     public static String resolveExportedPath(@CheckForNull String exportedPaths, @Nonnull EnvVars environment)  {
         return HELPER.resolveVariable(exportedPaths, environment);
     }
-    
-    @Deprecated        
+
+    @Deprecated
     public static String resolveExportedPath(@CheckForNull String exportedPaths, @Nonnull Node node) {
         return HELPER.resolveVariable(exportedPaths, node);
     }

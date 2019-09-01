@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * Class implements support of versions for custom tools. 
+ * Class implements support of versions for custom tools.
  * @author Oleg Nenashev
  * @since 0.4
  */
@@ -43,7 +43,7 @@ public class ToolVersionConfig extends AbstractDescribableImpl<ToolVersionConfig
     public @Nonnull ExtendedChoiceParameterDefinition getVersionsListSource() {
         return versionsListSource;
     }
-     
+
     @Extension
     public static class DescriptorImpl extends Descriptor<ToolVersionConfig> {
         @Override

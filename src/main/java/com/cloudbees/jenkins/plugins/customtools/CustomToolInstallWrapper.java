@@ -51,7 +51,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Installs tools selected by the user. Exports configured paths and a home variable for each tool.
- * 
+ *
  * @author rcampbell
  * @author Oleg Nenashev
  *
@@ -66,12 +66,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      */
     public static class SelectedTool {
         private final String name;
-        
+
         @DataBoundConstructor
         public SelectedTool(String name) {
             this.name = name;
         }
-        
+
         public String getName() {
             return name;
         }
@@ -80,12 +80,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         public String toString() {
             return name;
         }
-        
+
         public @CheckForNull CustomTool toCustomTool() {
             CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
             return tools != null ? tools.byName(name) : null;
         }
-        
+
         public @Nonnull CustomTool toCustomToolValidated() throws CustomToolException {
             CustomTool tool = toCustomTool();
             if (tool == null) {
@@ -95,53 +95,53 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             return tool;
         }
     }
-    
+
     private final @Nonnull SelectedTool[] selectedTools;
-    private final @CheckForNull MulticonfigWrapperOptions multiconfigOptions;    
+    private final @CheckForNull MulticonfigWrapperOptions multiconfigOptions;
     private final boolean convertHomesToUppercase;
-    
+
     @DataBoundConstructor
     public CustomToolInstallWrapper(SelectedTool[] selectedTools, MulticonfigWrapperOptions multiconfigOptions, boolean convertHomesToUppercase) {
         this.selectedTools = (selectedTools != null) ? selectedTools : new SelectedTool[0];
         this.multiconfigOptions = (multiconfigOptions != null) ? multiconfigOptions : MulticonfigWrapperOptions.DEFAULT;
         this.convertHomesToUppercase = convertHomesToUppercase;
     }
-    
+
     public boolean isConvertHomesToUppercase() {
         return convertHomesToUppercase;
-    }   
-    
+    }
+
     @Override
     public Environment setUp(AbstractBuild build, Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException {
-        
+
         final EnvVars buildEnv = build.getEnvironment(listener);
         final Node node = build.getBuiltOn();
-         
-        return new Environment() {            
+
+        return new Environment() {
             @Override
-            public void buildEnvVars(Map<String, String> env) {    
-                
+            public void buildEnvVars(Map<String, String> env) {
+
                 // TODO: Inject Home dirs as well
                 for (SelectedTool selectedTool : selectedTools) {
                     CustomTool tool = selectedTool.toCustomTool();
                     if (tool != null && tool.hasVersions()) {
-                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
                         if (version != null && !env.containsKey(version.getVariableName())) {
                             env.put(version.getVariableName(), version.getDefaultVersion());
                         }
                     }
-                } 
+                }
             }
         };
     }
-    
+
     public @Nonnull SelectedTool[] getSelectedTools() {
         return selectedTools.clone();
     }
-    
+
     /**
-     * The heart of the beast. Installs selected tools and exports their paths to the 
+     * The heart of the beast. Installs selected tools and exports their paths to the
      * PATH and their HOMEs as environment variables.
      * @return A decorated launcher
      */
@@ -149,50 +149,50 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     public Launcher decorateLauncher(AbstractBuild build, final Launcher launcher,
             BuildListener listener) throws IOException, InterruptedException,
             RunnerAbortedException {
-        
-        EnvVars buildEnv = build.getEnvironment(listener); 
+
+        EnvVars buildEnv = build.getEnvironment(listener);
         final EnvVars homes = new EnvVars();
         final EnvVars versions = new EnvVars();
-        
+
         final PathsList paths = new PathsList();
         final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<>();
-        
+
         // Handle multi-configuration build
-        if (build instanceof MatrixBuild) {  
+        if (build instanceof MatrixBuild) {
             CustomToolsLogger.logMessage(listener, "Skipping installation of tools at the master job");
             if (getMulticonfigOptions().isSkipMasterInstallation()) {
                 return launcher;
             }
         }
-        
+
         // Each tool can export zero or many directories to the PATH
         final Node node =  Computer.currentComputer().getNode();
         if (node == null) {
             throw new CustomToolException("Cannot install tools on the deleted node");
         }
-        
+
         for (SelectedTool selectedToolName : selectedTools) {
-            CustomTool tool = selectedToolName.toCustomToolValidated();            
+            CustomTool tool = selectedToolName.toCustomToolValidated();
             CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
-            
+
             // Check versioning
             checkVersions(tool, listener, buildEnv, node, versions);
-            
+
             // This installs the tool if necessary
             CustomTool installed = tool
                     .forNode(node, listener)
                     .forEnvironment(buildEnv)
                     .forBuildProperties(build.getProject().getProperties());
-            
+
             try {
                 installed.check();
             } catch (CustomToolException ex) {
                 throw new AbortException(ex.getMessage());
             }
-            
-            // Handle global options of the tool      
+
+            // Handle global options of the tool
             //TODO: convert to label specifics?
-            final PathsList installedPaths = installed.getPaths(node);          
+            final PathsList installedPaths = installed.getPaths(node);
             installed.correctHome(installedPaths);
             paths.add(installedPaths);
             final String additionalVars = installed.getAdditionalVariables();
@@ -201,18 +201,18 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             }
 
             // Handle label-specific options of the tool
-            for (LabelSpecifics spec : installed.getLabelSpecifics()) {              
+            for (LabelSpecifics spec : installed.getLabelSpecifics()) {
                 if (!spec.appliesTo(node)) {
                     continue;
                 }
                 CustomToolsLogger.logMessage(listener, installed.getName(), "Label specifics from '"+spec.getLabel()+"' will be applied");
-                    
+
                 final String additionalLabelSpecificVars = spec.getAdditionalVars();
                 if (additionalLabelSpecificVars != null) {
                     additionalVarInjectors.add(EnvVariablesInjector.create(additionalLabelSpecificVars));
                 }
             }
-            
+
             CustomToolsLogger.logMessage(listener, installed.getName(), "Tool is installed at "+ installed.getHome());
             String homeDirVarName = (convertHomesToUppercase ? installed.getName().toUpperCase(Locale.ENGLISH) : installed.getName()) +"_HOME";
             CustomToolsLogger.logMessage(listener, installed.getName(), "Setting "+ homeDirVarName+"="+installed.getHome());
@@ -221,7 +221,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
         return new Launcher.DecoratedLauncher(launcher) {
             @Override
-            public Proc launch(ProcStarter starter) throws IOException {           
+            public Proc launch(ProcStarter starter) throws IOException {
                 EnvVars vars;
                 try { // Dirty hack, which allows to avoid NPEs in Launcher::envs()
                     vars = toEnvVars(starter.envs());
@@ -230,30 +230,30 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 } catch (InterruptedException x) {
                     throw new IOException(x);
                 }
-                 
+
                 // Inject paths
-                final String injectedPaths = paths.toListString();              
-                if (injectedPaths != null) {              
+                final String injectedPaths = paths.toListString();
+                if (injectedPaths != null) {
                     vars.override("PATH+", injectedPaths);
                 }
-                               
+
                 // Inject additional variables
                 vars.putAll(homes);
                 vars.putAll(versions);
                 for (EnvVariablesInjector injector : additionalVarInjectors) {
                     injector.injectVariables(vars);
                 }
-                           
-                // Override paths to prevent JENKINS-20560              
+
+                // Override paths to prevent JENKINS-20560
                 if (vars.containsKey("PATH")) {
                     final String overallPaths=vars.get("PATH");
                     vars.remove("PATH");
                     vars.put("PATH+", overallPaths);
                 }
-                
+
                 return getInner().launch(starter.envs(vars));
             }
-                        
+
             private EnvVars toEnvVars(String[] envs) throws IOException, InterruptedException {
                 Computer computer = node.toComputer();
                 EnvVars vars = computer != null ? computer.getEnvironment() : new EnvVars();
@@ -264,17 +264,17 @@ public class CustomToolInstallWrapper extends BuildWrapper {
             }
         };
     }
-    
+
     /**
      * @deprecated The method is deprecated. It will be removed in future versions.
      * @throws CustomToolException
      */
     @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
-    public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target) 
+    public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target)
             throws CustomToolException  {
         checkVersions(tool, listener, buildEnv, node, target);
     }
-    
+
     /**
      * Checks versions and modify build environment if required.
      * @param tool Custom Tool
@@ -282,36 +282,36 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      * @param buildEnv Build Environment (can be modified)
      * @param node Target Node
      * @param target Build Internal Environment (can be modified)
-     * @throws CustomToolException 
+     * @throws CustomToolException
      * @since 0.4
      */
-    public void checkVersions (@Nonnull CustomTool tool, @Nonnull BuildListener listener, 
+    public void checkVersions (@Nonnull CustomTool tool, @Nonnull BuildListener listener,
             @Nonnull EnvVars buildEnv, @Nonnull Node node, @Nonnull EnvVars target) throws CustomToolException {
         // Check version
         if (tool.hasVersions()) {
-            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);   
+            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
             if (version == null) {
                 CustomToolsLogger.logMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
                 throw new CustomToolException("Version has not been specified for the "+tool.getName());
             }
-            
+
             CustomToolsLogger.logMessage(listener, tool.getName(), "Version "+version.getActualVersion()+" has been specified by "+version.getVersionSource());
-            
+
             // Override default versions
             final String versionSource = version.getVersionSource();
-            if (versionSource != null && versionSource.equals(ToolVersion.DEFAULTS_SOURCE)) {            
+            if (versionSource != null && versionSource.equals(ToolVersion.DEFAULTS_SOURCE)) {
                 String envStr = version.getVariableName()+"="+version.getDefaultVersion();
                 target.addLine(envStr);
                 buildEnv.addLine(envStr);
             }
-        }  
+        }
     }
-    
+
     @Override
     public Descriptor<BuildWrapper> getDescriptor() {
         return DESCRIPTOR;
     }
-    
+
     /**
      * Check if build has specific multi-configuration options
      * @return True if multi-configuration options are configured
@@ -328,13 +328,13 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      */
     public @Nonnull MulticonfigWrapperOptions getMulticonfigOptions() {
         return multiconfigOptions != null ? multiconfigOptions : MulticonfigWrapperOptions.DEFAULT;
-    }  
+    }
 
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
     public static final class DescriptorImpl extends BuildWrapperDescriptor {
-        
+
         public DescriptorImpl() {
             super(CustomToolInstallWrapper.class);
         }
@@ -348,11 +348,10 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         public boolean isApplicable(AbstractProject<?, ?> item) {
             return true;
         }
-        
+
         public CustomTool[] getInstallations() {
             CustomTool.DescriptorImpl tools = ToolInstallation.all().get(CustomTool.DescriptorImpl.class);
             return tools != null ? tools.getInstallations() : new CustomTool[0];
         }
     }
 }
-

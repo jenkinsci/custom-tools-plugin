@@ -34,5 +34,5 @@ public class MulticonfigWrapperOptions implements Serializable {
 
     public boolean isSkipMasterInstallation() {
         return skipMasterInstallation;
-    }    
+    }
 }

@@ -38,9 +38,9 @@ public class CommandCallerInstaller extends StubWrapper {
 
         return new Environment() {};
     }
-    
+
     @Extension
     public static class DescriptorImpl extends StubWrapper.DescriptorImpl {
-        
+
     }
 }

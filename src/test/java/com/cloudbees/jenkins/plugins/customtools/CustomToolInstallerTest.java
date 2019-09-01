@@ -51,20 +51,20 @@ public class CustomToolInstallerTest {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
-    
+
     private DescriptorImpl tools;
 
     @Test
     public void testSmoke() throws IOException, InterruptedException {
         VirtualChannel channel = Jenkins.getActiveInstance().getChannel();
         EnvVars envVars = new EnvVars();
-        
-        
-        CustomTool installation = createTool("MyTrue");        
-        
+
+
+        CustomTool installation = createTool("MyTrue");
+
         TaskListener listener = StreamTaskListener.fromStdout();
         installation = installation.forEnvironment(envVars).forNode(j.jenkins, listener);
-        
+
         if (!new FilePath(channel, installation.getHome()).exists()) {
             throw new IOException(installation.getHome() + "doesn't exist!");
         }
@@ -78,7 +78,7 @@ public class CustomToolInstallerTest {
         tools.setInstallations(createTool("MyTrue"));
         FreeStyleProject project = j.createFreeStyleProject();
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
-        
+
         CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
                 new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT, false);
         project.getBuildWrappersList().add(wrapper);
@@ -86,9 +86,9 @@ public class CustomToolInstallerTest {
         project.getBuildersList().add(b);
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
         j.assertBuildStatusSuccess(build);
-            
+
     }
-    
+
     //TODO: Just a stub for testing. Make the test automatic
     @Issue("JENKINS-19889")
     @Ignore @Test
@@ -99,16 +99,16 @@ public class CustomToolInstallerTest {
         tools.setInstallations(createEnvPrinterTool("MyTrue", null, "TEST_ADD_VAR=test"));
         FreeStyleProject project = j.createFreeStyleProject();
         CustomToolInstallWrapper.SelectedTool selectedTool = new CustomToolInstallWrapper.SelectedTool("MyTrue");
-        
+
         CustomToolInstallWrapper wrapper = new CustomToolInstallWrapper(
                 new CustomToolInstallWrapper.SelectedTool[] { selectedTool }, MulticonfigWrapperOptions.DEFAULT, false);
         project.getBuildWrappersList().add(wrapper);
         Builder b = new Shell("env; mytrue");
         project.getBuildersList().add(b);
         Future<FreeStyleBuild> build = project.scheduleBuild2(0);
-        j.assertBuildStatusSuccess(build);          
+        j.assertBuildStatusSuccess(build);
     }
-       
+
     public static CustomTool createTool(String name) throws IOException {
         List<ToolInstaller> installers = new ArrayList<>();
         installers.add(new CommandInstaller(null, "ln -s `which true` mytrue",
@@ -119,7 +119,7 @@ public class CustomToolInstallerTest {
 
         return new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
     }
-    
+
     //TODO: refactor and generalize
     private CustomTool createEnvPrinterTool(String name, LabelSpecifics[] specifics, String additionalVars) throws IOException {
         List<ToolInstaller> installers = new ArrayList<>();
@@ -130,5 +130,5 @@ public class CustomToolInstallerTest {
 
         return new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);
     }
-    
+
 }

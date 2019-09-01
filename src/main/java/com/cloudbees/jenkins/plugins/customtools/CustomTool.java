@@ -60,7 +60,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * An arbitrary tool, which can add directories to the build's PATH.
  * @author rcampbell
  * @author Oleg Nenashev
- * 
+ *
  */
 @SuppressFBWarnings(value = "SE_NO_SERIALVERSIONID",
         justification = "Actually we do not send the class over the channel. Serial version ID is not required for XStream")
@@ -88,13 +88,13 @@ public class CustomTool extends ToolInstallation implements
      * Stores variables expression in *.properties format.
      */
     private final @CheckForNull String additionalVariables;
-    
-    private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];           
-    
+
+    private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];
+
     @DataBoundConstructor
-    public CustomTool(@Nonnull String name, @Nonnull String home, 
+    public CustomTool(@Nonnull String name, @Nonnull String home,
             @CheckForNull List<? extends ToolProperty<?>> properties, @CheckForNull String exportedPaths,
-            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion, 
+            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion,
             @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
@@ -102,7 +102,7 @@ public class CustomTool extends ToolInstallation implements
         this.toolVersion = toolVersion;
         this.additionalVariables = additionalVariables;
     }
-    
+
     public @CheckForNull String getExportedPaths() {
         return exportedPaths;
     }
@@ -114,19 +114,19 @@ public class CustomTool extends ToolInstallation implements
     public @CheckForNull ToolVersionConfig getToolVersion() {
         return toolVersion;
     }
-    
+
     public boolean hasVersions() {
         return toolVersion != null;
     }
-    
+
     @Override
     @CheckForNull
     public String getHome() {
-        return (correctedHome != null) ? correctedHome : super.getHome(); 
+        return (correctedHome != null) ? correctedHome : super.getHome();
     }
-        
+
     public void correctHome(@Nonnull PathsList pathList) {
-        correctedHome = pathList.getHomeDir(); 
+        correctedHome = pathList.getHomeDir();
     }
 
     public @Nonnull LabelSpecifics[] getLabelSpecifics() {
@@ -135,40 +135,40 @@ public class CustomTool extends ToolInstallation implements
 
     /**
      * Check if the tool has additional environment variables set.
-     * @return true when the tool injects additional environment variables. 
+     * @return true when the tool injects additional environment variables.
      */
     public boolean hasAdditionalVariables() {
         return additionalVariables != null;
     }
-   
+
     public @CheckForNull String getAdditionalVariables() {
         return additionalVariables;
     }
-         
+
     @Override
     public CustomTool forEnvironment(EnvVars environment) {
-        String substitutedHomeDir = VariablesSubstitutionHelper.PATH.resolveVariable(getHome(), environment);     
-        String substitutedPath = VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, environment);          
+        String substitutedHomeDir = VariablesSubstitutionHelper.PATH.resolveVariable(getHome(), environment);
+        String substitutedPath = VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, environment);
         String substitutedAdditionalVariables = VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVariables, environment);
-        
+
         return new CustomTool(getName(), substitutedHomeDir,
                 getProperties().toList(), substitutedPath,
-                LabelSpecifics.substitute(getLabelSpecifics(), environment), 
+                LabelSpecifics.substitute(getLabelSpecifics(), environment),
                 toolVersion, substitutedAdditionalVariables);
     }
 
     @Override
-    public @Nonnull CustomTool forNode(Node node, TaskListener log) 
-            throws IOException, InterruptedException {   
-        String substitutedHomeDir = VariablesSubstitutionHelper.PATH.resolveVariable(translateFor(node, log), node);  
-        String substitutedPath = VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, node);            
+    public @Nonnull CustomTool forNode(Node node, TaskListener log)
+            throws IOException, InterruptedException {
+        String substitutedHomeDir = VariablesSubstitutionHelper.PATH.resolveVariable(translateFor(node, log), node);
+        String substitutedPath = VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, node);
         String substitutedAdditionalVariables = VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVariables, node);
-        
-        return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(), 
-                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node), 
+
+        return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(),
+                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node),
                 toolVersion, substitutedAdditionalVariables);
     }
-    
+
     //FIXME: just a stub
     @Deprecated
     @Restricted(NoExternalUse.class)
@@ -178,10 +178,10 @@ public class CustomTool extends ToolInstallation implements
             throw new IllegalStateException("Tool home must not be null at this stage, likely it's an API misusage");
         }
         return new CustomTool(getName(), toolHome, getProperties().toList(),
-                getExportedPaths(), getLabelSpecifics(), 
+                getExportedPaths(), getLabelSpecifics(),
                 toolVersion, getAdditionalVariables());
     }
-    
+
     /**
      * Checks the tool consistency.
      * @throws CustomToolException Validation error
@@ -190,7 +190,7 @@ public class CustomTool extends ToolInstallation implements
         EnvStringParseHelper.checkStringForMacro("EXPORTED_PATHS", getExportedPaths());
         EnvStringParseHelper.checkStringForMacro("HOME_DIR", getHome());
     }
-    
+
     /**
      * Get list of label specifics, which apply to the specified node.
      * @param node Node to be checked
@@ -251,12 +251,12 @@ public class CustomTool extends ToolInstallation implements
     /**
      * Finds the directories to add to the path, for the given node.
      * Uses Ant filesets to expand the patterns in the exportedPaths field.
-     * 
+     *
      * @param node where the tool has been installed
      * @return a list of directories to add to the $PATH
-     * 
+     *
      * @throws IOException
-     * @throws InterruptedException Operation has been interrupted 
+     * @throws InterruptedException Operation has been interrupted
      */
     protected @Nonnull PathsList getPaths(@Nonnull Node node) throws IOException, InterruptedException {
 
@@ -264,12 +264,12 @@ public class CustomTool extends ToolInstallation implements
         //FIXME: Why?
         if (exportedPaths == null) {
             return PathsList.EMPTY;
-        }       
+        }
         final List<LabelSpecifics> specs = getAppliedSpecifics(node);
-        
+
         PathsList pathsFound = homePath.act(new MasterToSlaveFileCallable<PathsList>() {
             private void parseLists(String pathList, List<String> target) {
-                String[] items = pathList.split("\\s*,\\s*");              
+                String[] items = pathList.split("\\s*,\\s*");
                 for (String item : items) {
                     if (item.isEmpty()) {
                         continue;
@@ -277,11 +277,11 @@ public class CustomTool extends ToolInstallation implements
                     target.add(item);
                 }
             }
-            
+
             @Override
             public PathsList invoke(File f, VirtualChannel channel)
-                    throws IOException, InterruptedException {           
-                
+                    throws IOException, InterruptedException {
+
                 // Construct output paths
                 List<String> items = new LinkedList<>();
                 if (exportedPaths != null) {
@@ -293,32 +293,32 @@ public class CustomTool extends ToolInstallation implements
                         parseLists(exportedPathsFromSpec, items);
                     }
                 }
-                             
+
                 // Resolve exported paths
                 List<String> outList = new LinkedList<>();
-                for (String item : items) {    
+                for (String item : items) {
                     File file = new File(item);
                     if (!file.isAbsolute()) {
                         file = new File (getHome(), item);
                     }
-                    
+
                     // Check if directory exists
                     if (!file.isDirectory() || !file.exists()) {
                         throw new AbortException("Wrong EXPORTED_PATHS configuration. Can't find "+file.getPath());
-                    } 
+                    }
                     outList.add(file.getAbsolutePath());
                 }
-                
+
                 // Resolve home dir
                 final String toolHome = getHome();
                 if (toolHome == null) {
                     throw new IOException("Cannot retrieve Tool home directory. Should never happen ant this stage, please file a bug");
                 }
                 final File homeDir = new File(toolHome);
-                return new PathsList(outList, homeDir.getAbsolutePath());               
+                return new PathsList(outList, homeDir.getAbsolutePath());
             }
         });
-              
+
         return pathsFound;
     }
 

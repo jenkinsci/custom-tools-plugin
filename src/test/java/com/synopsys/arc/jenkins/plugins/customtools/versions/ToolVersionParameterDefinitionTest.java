@@ -55,19 +55,19 @@ import org.jvnet.hudson.test.JenkinsRule;
  * @author Oleg Nenashev
  */
 public class ToolVersionParameterDefinitionTest {
-   
+
     @Rule
     public JenkinsRule j = new JenkinsRule();
-    
+
     private CLICommandInvoker command;
-    
+
     private static final String TEST_TOOL_NAME="test";
     private static final ToolVersionConfig versionConfig = new ToolVersionConfig(
-            new ExtendedChoiceParameterDefinition("TOOL_VERSION", 
+            new ExtendedChoiceParameterDefinition("TOOL_VERSION",
                     ExtendedChoiceParameterDefinition.PARAMETER_TYPE_TEXT_BOX
                     , "5", null, null, "5", null, null, false, 5, "description")
     );
-    
+
     private void setupVersionedTool() throws Exception {
         CustomTool.DescriptorImpl tools = j.jenkins.getDescriptorByType(CustomTool.DescriptorImpl.class);
         List<ToolInstaller> installers = new ArrayList<>();
@@ -77,71 +77,71 @@ public class ToolVersionParameterDefinitionTest {
         CustomTool installation = new CustomTool(TEST_TOOL_NAME, null, properties, "./", null, versionConfig, null);
         tools.setInstallations(installation);
     }
-    
+
     private FreeStyleProject setupJobWithVersionParam(Slave targetSlave) throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("foo");
         ParametersDefinitionProperty pdp = new ParametersDefinitionProperty(
                 new StringParameterDefinition("string", "defaultValue", "description"),
                 new ToolVersionParameterDefinition(TEST_TOOL_NAME));
-        
+
         project.addProperty(pdp);
         project.setAssignedNode(targetSlave);
-        
+
         return project;
     }
-    
+
     @Test
     @Issue("JENKINS-22925")
-    public void testDefaultValueOnCLICall() throws Exception {           
+    public void testDefaultValueOnCLICall() throws Exception {
         // Setup the environment
         setupVersionedTool();
         DumbSlave slave = j.createSlave();
         FreeStyleProject project = setupJobWithVersionParam(slave);
-               
+
         // Create CLI & run command
         CLICommandInvoker command = new CLICommandInvoker(j, new BuildCommand());
         final CLICommandInvoker.Result result = command
                 .authorizedTo(Jenkins.ADMINISTER)
                 .invokeWithArgs("foo","-p","string=foo");
         MatcherAssert.assertThat(result, succeeded());
-                
+
         // Check the job
         Queue.Item q = j.jenkins.getQueue().getItem(project);
         Thread.sleep(5000);
-        
+
         // Check executors health after a timeout
         for (Executor exec : slave.toComputer().getExecutors()) {
             Assert.assertTrue("Executor is neither parked nor active: " + exec, exec.isActive() || exec.isParking());
         }
     }
-    
+
     @Test
     @Issue("JENKINS-22923")
-    public void testSpecifyVersionInCLICall() throws Exception {           
+    public void testSpecifyVersionInCLICall() throws Exception {
         // Setup the environment
         setupVersionedTool();
         DumbSlave slave = j.createSlave();
-        FreeStyleProject project = setupJobWithVersionParam(slave);  
-        
+        FreeStyleProject project = setupJobWithVersionParam(slave);
+
         // Create CLI & run command
         CLICommandInvoker command = new CLICommandInvoker(j, new BuildCommand());
         final CLICommandInvoker.Result result = command
                 .authorizedTo(Jenkins.ADMINISTER)
                 .invokeWithArgs("foo","-p","string=foo","-p","TOOL_VERSION=test");
         MatcherAssert.assertThat(result, succeeded());
-                
+
         // Check the job
         Queue.Item q = j.jenkins.getQueue().getItem(project);
         if (q != null) {
             Thread.sleep(5000);
             q.getFuture();
-        } else { 
+        } else {
             // it has benn already executed, we'll check it later
         }
-        
+
         FreeStyleBuild lastBuild = project.getLastBuild();
         assertNotNull("The build has not been executed yet", lastBuild);
-        
+
         ParametersAction params = lastBuild.getAction(ParametersAction.class);
         assertNotNull(params);
         ParameterValue parameterValue = params.getParameter("TOOL_VERSION");

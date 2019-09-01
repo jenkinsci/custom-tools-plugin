@@ -39,25 +39,25 @@ public class ToolVersion implements Serializable {
     /**
      * Constructs a default version.
      * @param variableName
-     * @param defaultVersion 
+     * @param defaultVersion
      */
     private ToolVersion(String variableName, String defaultVersion) {
         this(variableName, defaultVersion, null, null);
     }
-    
-    private ToolVersion (@Nonnull ToolVersion defaultVersion, @CheckForNull String actualVersion, 
+
+    private ToolVersion (@Nonnull ToolVersion defaultVersion, @CheckForNull String actualVersion,
             @CheckForNull String versionSource) {
         this(defaultVersion.getVariableName(), defaultVersion.getDefaultVersion(), actualVersion, versionSource);
     }
 
-    public ToolVersion(String variableName, @CheckForNull String defaultVersion, 
+    public ToolVersion(String variableName, @CheckForNull String defaultVersion,
             @CheckForNull String actualVersion, @CheckForNull String versionSource) {
         this.variableName = variableName;
         this.defaultVersion = defaultVersion;
         this.actualVersion = actualVersion;
         this.versionSource = versionSource;
     }
-    
+
     public boolean hasDefaultVersion() {
         return defaultVersion != null;
     }
@@ -65,7 +65,7 @@ public class ToolVersion implements Serializable {
     public @CheckForNull String getDefaultVersion() {
         return defaultVersion;
     }
-        
+
     public void setDefaultVersion(@CheckForNull String defaultVersion) {
         this.defaultVersion = defaultVersion;
     }
@@ -81,28 +81,28 @@ public class ToolVersion implements Serializable {
     public @CheckForNull String getVersionSource() {
         return versionSource;
     }
-    
+
     /**
      * Retrieves the default {@link CustomTool} version.
      * @param tool Tool
-     * @return The default version or null if the versioning is not configured. 
+     * @return The default version or null if the versioning is not configured.
      */
     public static @CheckForNull ToolVersion getDefaultToolVersion(@Nonnull CustomTool tool) {
         final ToolVersionConfig versionConfig = tool.getToolVersion();
         if (versionConfig == null) {
             return null;
         }
-        
+
         ExtendedChoiceParameterDefinition def = versionConfig.getVersionsListSource();
         String defaultVersion = hudson.Util.fixEmptyAndTrim(def.getEffectiveDefaultValue());
         return new ToolVersion(def.getName(), defaultVersion);
     }
-    
+
     /**
      * Method gets effective tool version for the build.
      * @param tool Custom tool
      * @param buildEnv Current build environment
-     * @param node Node, where the build runs 
+     * @param node Node, where the build runs
      * @return Effective tool version. Null if the version is unavailable
      */
     public static @CheckForNull ToolVersion getEffectiveToolVersion(CustomTool tool, EnvVars buildEnv, Node node) {
@@ -110,19 +110,19 @@ public class ToolVersion implements Serializable {
         if (defaultVersion == null) {
             return null;
         }
-        
+
         // Check if the node has version specified
-        String subst = "${"+defaultVersion.getVariableName()+"}"; 
-                
+        String subst = "${"+defaultVersion.getVariableName()+"}";
+
         // Try to find a variable in environment
         String res = EnvStringParseHelper.resolveExportedPath(subst, node);
         if (!subst.equals(res)) {
             return new ToolVersion(defaultVersion, res, "node or global variables");
         } else if (buildEnv.containsKey(defaultVersion.getVariableName())) {
             String envVersion = buildEnv.get(defaultVersion.getVariableName());
-            return new ToolVersion(defaultVersion, envVersion, "build environment");  
+            return new ToolVersion(defaultVersion, envVersion, "build environment");
         } else if (defaultVersion.hasDefaultVersion()){
-            return new ToolVersion(defaultVersion, defaultVersion.getDefaultVersion(), DEFAULTS_SOURCE);     
+            return new ToolVersion(defaultVersion, defaultVersion.getDefaultVersion(), DEFAULTS_SOURCE);
         } else {
             return null;
         }
@@ -131,5 +131,5 @@ public class ToolVersion implements Serializable {
     @Override
     public String toString() {
         return defaultVersion != null ? defaultVersion : "null";
-    }    
+    }
 }
