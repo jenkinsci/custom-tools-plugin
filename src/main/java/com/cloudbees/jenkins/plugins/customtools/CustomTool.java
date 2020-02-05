@@ -42,11 +42,7 @@ import hudson.tools.ZipExtractionInstaller;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Arrays;
+import java.util.*;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.MasterToSlaveFileCallable;
@@ -74,7 +70,7 @@ public class CustomTool extends ToolInstallation implements
     /**
      * Label-specific options.
      */
-    private final @CheckForNull LabelSpecifics[] labelSpecifics;
+    private @CheckForNull ArrayList<LabelSpecifics> labelSpecifics;
     /**
      * A cached value of the home directory.
      */
@@ -89,16 +85,18 @@ public class CustomTool extends ToolInstallation implements
      */
     private final @CheckForNull String additionalVariables;
 
-    private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];
+    private static final @Nonnull ArrayList<LabelSpecifics> EMPTY_LABELS = new ArrayList<LabelSpecifics>();
 
     @DataBoundConstructor
     public CustomTool(@Nonnull String name, @Nonnull String home,
-            @CheckForNull List<? extends ToolProperty<?>> properties, @CheckForNull String exportedPaths,
-            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion,
-            @CheckForNull String additionalVariables) {
+                      @CheckForNull List<? extends ToolProperty<?>> properties,
+                      @CheckForNull String exportedPaths,
+                      @CheckForNull ArrayList<LabelSpecifics> labelSpecifics,
+                      @CheckForNull ToolVersionConfig toolVersion,
+                      @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
-        this.labelSpecifics = labelSpecifics != null ? Arrays.copyOf(labelSpecifics, labelSpecifics.length) : null;
+        this.labelSpecifics = (labelSpecifics != null) ? new ArrayList<LabelSpecifics>(labelSpecifics) : EMPTY_LABELS;
         this.toolVersion = toolVersion;
         this.additionalVariables = additionalVariables;
     }
@@ -129,8 +127,8 @@ public class CustomTool extends ToolInstallation implements
         correctedHome = pathList.getHomeDir();
     }
 
-    public @Nonnull LabelSpecifics[] getLabelSpecifics() {
-        return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
+    public @Nonnull ArrayList<LabelSpecifics> getLabelSpecifics() {
+        return (labelSpecifics !=null) ? labelSpecifics : EMPTY_LABELS;
     }
 
     /**
@@ -165,7 +163,8 @@ public class CustomTool extends ToolInstallation implements
         String substitutedAdditionalVariables = VariablesSubstitutionHelper.PROP_FILE.resolveVariable(additionalVariables, node);
 
         return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(),
-                substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node),
+                substitutedPath,
+                LabelSpecifics.substitute(getLabelSpecifics(), node),
                 toolVersion, substitutedAdditionalVariables);
     }
 
@@ -178,7 +177,8 @@ public class CustomTool extends ToolInstallation implements
             throw new IllegalStateException("Tool home must not be null at this stage, likely it's an API misusage");
         }
         return new CustomTool(getName(), toolHome, getProperties().toList(),
-                getExportedPaths(), getLabelSpecifics(),
+                getExportedPaths(),
+                getLabelSpecifics(),
                 toolVersion, getAdditionalVariables());
     }
 
@@ -198,8 +198,8 @@ public class CustomTool extends ToolInstallation implements
      * @since 0.3
      */
     public @Nonnull List<LabelSpecifics> getAppliedSpecifics(@Nonnull Node node) {
-        List<LabelSpecifics> out = new LinkedList<>();
-        if (labelSpecifics != null) {
+        List<LabelSpecifics> out = new LinkedList<LabelSpecifics>();
+        if (labelSpecifics!=null) {
             for (LabelSpecifics spec : labelSpecifics) {
                 if (spec.appliesTo(node)) {
                     out.add(spec);
@@ -283,7 +283,7 @@ public class CustomTool extends ToolInstallation implements
                     throws IOException, InterruptedException {
 
                 // Construct output paths
-                List<String> items = new LinkedList<>();
+                List<String> items = new LinkedList<String>();
                 if (exportedPaths != null) {
                     parseLists(exportedPaths, items);
                 }
@@ -295,7 +295,7 @@ public class CustomTool extends ToolInstallation implements
                 }
 
                 // Resolve exported paths
-                List<String> outList = new LinkedList<>();
+                List<String> outList = new LinkedList<String>();
                 for (String item : items) {
                     File file = new File(item);
                     if (!file.isAbsolute()) {

@@ -28,7 +28,7 @@ public class ArrayHelper {
      * @param <TItemType> Type of the items
      * @param first First array
      * @param second Second array
-     * @return
+     * @return Merged array
      */
     @CheckForNull
     public static <TItemType> TItemType[] merge(@CheckForNull TItemType[] first, @CheckForNull TItemType[] second) {

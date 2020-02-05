@@ -28,8 +28,9 @@ public class CustomToolsLogger {
     public static final String LOG_PREFIX = "[CustomTools] - ";
 
     /**
-     * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String)}
-     * instead.
+     * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String)} instead.
+     * @param listener Build listener
+     * @param message Message
      */
     @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
     public static void LogMessage(@Nonnull BuildListener listener, String message) {
@@ -37,8 +38,10 @@ public class CustomToolsLogger {
     }
 
     /**
-     * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String, java.lang.String)}
-     * instead.
+     * @deprecated Use {@link #logMessage(hudson.model.BuildListener, java.lang.String, java.lang.String)} instead.
+     * @param message Message
+     * @param listener Build listener
+     * @param toolName Tool name
      */
     @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
     public static void LogMessage(@Nonnull BuildListener listener, String toolName, String message) {

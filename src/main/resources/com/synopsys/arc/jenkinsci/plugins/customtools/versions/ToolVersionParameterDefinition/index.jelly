@@ -1,6 +1,8 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
-  <st:include class="com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition"
-              page="index.jelly"
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+  xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+  xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
+  <st:include class="com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition" 
+              page="index.jelly"            
               it="${it.versionConfig.versionsListSource}"/>
 </j:jelly>

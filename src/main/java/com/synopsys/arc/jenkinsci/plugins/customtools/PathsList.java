@@ -35,7 +35,7 @@ public class PathsList implements Serializable {
     public @CheckForNull String pathSeparator;
     public @CheckForNull String separator;
 
-    public static final PathsList EMPTY = new PathsList(new LinkedList<>(), null);
+    public static final PathsList EMPTY = new PathsList(new LinkedList<String>(), null);
 
     /**
      * Constructor. Sets system's default separator and pathSeparator
@@ -50,13 +50,13 @@ public class PathsList implements Serializable {
      * Empty constructor. doesn't set pathSeparator and separator
      */
     public PathsList() {
-        this(new LinkedList<>(), null, null, null);
+        this(new LinkedList<String>(), null, null, null);
     }
 
     public PathsList(@Nonnull Collection<String> paths,
             @CheckForNull String pathSeparator, @CheckForNull String separator,
             @CheckForNull String homeDir) {
-        this.paths = new ArrayList<>(paths);
+        this.paths = new ArrayList<String>(paths);
         this.pathSeparator = pathSeparator;
         this.separator = separator;
         this.homeDir = homeDir;
