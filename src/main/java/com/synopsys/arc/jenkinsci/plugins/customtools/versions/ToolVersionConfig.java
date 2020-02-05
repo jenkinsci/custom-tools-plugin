@@ -15,7 +15,6 @@
  */
 package com.synopsys.arc.jenkinsci.plugins.customtools.versions;
 
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;

@@ -155,7 +155,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         final EnvVars versions = new EnvVars();
 
         final PathsList paths = new PathsList();
-        final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<>();
+        final List<EnvVariablesInjector> additionalVarInjectors = new LinkedList<EnvVariablesInjector>();
 
         // Handle multi-configuration build
         if (build instanceof MatrixBuild) {
@@ -267,7 +267,12 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
     /**
      * @deprecated The method is deprecated. It will be removed in future versions.
-     * @throws CustomToolException
+     * @throws CustomToolException Custom tool health check
+     * @param tool Custom Tool
+     * @param listener Build listener
+     * @param buildEnv Build environment
+     * @param node Jenkins node
+     * @param target Target environment
      */
     @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
     public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target)
@@ -282,7 +287,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
      * @param buildEnv Build Environment (can be modified)
      * @param node Target Node
      * @param target Build Internal Environment (can be modified)
-     * @throws CustomToolException
+     * @throws CustomToolException Custom tool health check
      * @since 0.4
      */
     public void checkVersions (@Nonnull CustomTool tool, @Nonnull BuildListener listener,

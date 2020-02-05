@@ -1,23 +1,6 @@
-/*
- * Copyright 2013 Oleg Nenashev, Synopsys Inc..
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.synopsys.arc.jenkinsci.plugins.customtools.versions;
 
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterValue;
 import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
 import hudson.cli.CLICommand;
@@ -31,6 +14,7 @@ import javax.annotation.Nonnull;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
+import hudson.model.StringParameterValue;
 
 /**
  * Implements "Tool version" parameter.
@@ -83,7 +67,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
     @Override
     public StringParameterValue createValue(StaplerRequest req, JSONObject jo)
             throws IllegalStateException {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)
+        StringParameterValue paramVal = (StringParameterValue)
                 getVersionsListSource().createValue(req, jo);
         if (paramVal == null) {
             return null;
@@ -93,7 +77,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
 
     @Override
     public StringParameterValue createValue(StaplerRequest req) {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)
+        StringParameterValue paramVal = (StringParameterValue)
                 getVersionsListSource().createValue(req);
         if (paramVal == null) {
             return null;
@@ -102,14 +86,14 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
     }
 
     @Override
-    public ParameterValue createValue(CLICommand command, String value) throws IOException, InterruptedException {
+    public ParameterValue createValue(CLICommand command, String value) throws InterruptedException {
         final String paramName = getVersionsListSource().getName();
         return new StringParameterValue(paramName, value);
     }
 
     @Override
     public ParameterValue getDefaultParameterValue() {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)
+        StringParameterValue paramVal = (StringParameterValue)
                 getVersionsListSource().getDefaultParameterValue();
         if (paramVal == null) {
             return null;
