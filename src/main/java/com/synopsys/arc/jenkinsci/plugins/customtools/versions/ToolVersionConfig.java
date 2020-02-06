@@ -15,7 +15,6 @@
  */
 package com.synopsys.arc.jenkinsci.plugins.customtools.versions;
 
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
@@ -33,14 +32,16 @@ public class ToolVersionConfig extends AbstractDescribableImpl<ToolVersionConfig
         implements Serializable {
 
     public static final ToolVersionConfig DEFAULT = null;
-    private final @Nonnull ExtendedChoiceParameterDefinition versionsListSource;
+    private final @Nonnull
+    ExtendedChoiceParameterDefinition versionsListSource;
 
     @DataBoundConstructor
     public ToolVersionConfig(@Nonnull ExtendedChoiceParameterDefinition versionsListSource) {
         this.versionsListSource = versionsListSource;
     }
 
-    public @Nonnull ExtendedChoiceParameterDefinition getVersionsListSource() {
+    public @Nonnull
+    ExtendedChoiceParameterDefinition getVersionsListSource() {
         return versionsListSource;
     }
 
