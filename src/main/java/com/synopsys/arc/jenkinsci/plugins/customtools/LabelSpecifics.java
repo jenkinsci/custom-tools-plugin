@@ -52,7 +52,7 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         return additionalVars;
     }
 
-     public boolean hasAdditionalVars() {
+    public boolean hasAdditionalVars() {
         return additionalVars != null;
     }
 
@@ -91,25 +91,9 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
                 VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, node));
     }
 
-    public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, @Nonnull EnvVars vars) {
-        LabelSpecifics[] out = new LabelSpecifics[specifics.length];
-        for (int i=0; i<specifics.length; i++) {
-            out[i] = specifics[i].substitute(vars);
-        }
-        return out;
-    }
-
-    public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, Node node) {
-        LabelSpecifics[] out = new LabelSpecifics[specifics.length];
-        for (int i=0; i<specifics.length; i++) {
-            out[i] = specifics[i].substitute(node);
-        }
-        return out;
-    }
-
     public static @Nonnull
     ArrayList<LabelSpecifics> substitute (ArrayList<LabelSpecifics> specifics, @Nonnull EnvVars vars) {
-        ArrayList<LabelSpecifics> out = new ArrayList<LabelSpecifics>();
+        ArrayList<LabelSpecifics> out = new ArrayList<>();
         for (int i=0; i<specifics.size(); i++) {
             out.add(specifics.get(i).substitute(vars));
         }
@@ -117,7 +101,7 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
     }
 
     public static @Nonnull ArrayList<LabelSpecifics> substitute (ArrayList<LabelSpecifics> specifics, Node node) {
-        ArrayList<LabelSpecifics> out = new ArrayList<LabelSpecifics>();
+        ArrayList<LabelSpecifics> out = new ArrayList<>();
         for (int i=0; i<specifics.size(); i++) {
             out.add(specifics.get(i).substitute(node));
         }
