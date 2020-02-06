@@ -23,6 +23,7 @@ import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
 import java.io.Serializable;
+import java.util.ArrayList;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
@@ -105,6 +106,24 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         }
         return out;
     }
+
+    public static @Nonnull
+    ArrayList<LabelSpecifics> substitute (ArrayList<LabelSpecifics> specifics, @Nonnull EnvVars vars) {
+        ArrayList<LabelSpecifics> out = new ArrayList<LabelSpecifics>();
+        for (int i=0; i<specifics.size(); i++) {
+            out.add(specifics.get(i).substitute(vars));
+        }
+        return out;
+    }
+
+    public static @Nonnull ArrayList<LabelSpecifics> substitute (ArrayList<LabelSpecifics> specifics, Node node) {
+        ArrayList<LabelSpecifics> out = new ArrayList<LabelSpecifics>();
+        for (int i=0; i<specifics.size(); i++) {
+            out.add(specifics.get(i).substitute(node));
+        }
+        return out;
+    }
+
 
     @Extension
     public static class DescriptorImpl extends Descriptor<LabelSpecifics> {
