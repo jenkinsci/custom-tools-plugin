@@ -46,7 +46,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
+import java.util.ArrayList;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.MasterToSlaveFileCallable;
@@ -74,7 +74,7 @@ public class CustomTool extends ToolInstallation implements
     /**
      * Label-specific options.
      */
-    private final @CheckForNull LabelSpecifics[] labelSpecifics;
+    private @CheckForNull ArrayList<LabelSpecifics> labelSpecifics;
     /**
      * A cached value of the home directory.
      */
@@ -89,16 +89,18 @@ public class CustomTool extends ToolInstallation implements
      */
     private final @CheckForNull String additionalVariables;
 
-    private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];
+    private static final @Nonnull ArrayList<LabelSpecifics> EMPTY_LABELS = new ArrayList<LabelSpecifics>();
 
     @DataBoundConstructor
     public CustomTool(@Nonnull String name, @Nonnull String home,
-            @CheckForNull List<? extends ToolProperty<?>> properties, @CheckForNull String exportedPaths,
-            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion,
-            @CheckForNull String additionalVariables) {
+                      @CheckForNull List<? extends ToolProperty<?>> properties,
+                      @CheckForNull String exportedPaths,
+                      @CheckForNull ArrayList<LabelSpecifics> labelSpecifics,
+                      @CheckForNull ToolVersionConfig toolVersion,
+                      @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
-        this.labelSpecifics = labelSpecifics != null ? Arrays.copyOf(labelSpecifics, labelSpecifics.length) : null;
+        this.labelSpecifics = (labelSpecifics != null) ? new ArrayList<LabelSpecifics>(labelSpecifics) : EMPTY_LABELS;
         this.toolVersion = toolVersion;
         this.additionalVariables = additionalVariables;
     }
@@ -129,8 +131,8 @@ public class CustomTool extends ToolInstallation implements
         correctedHome = pathList.getHomeDir();
     }
 
-    public @Nonnull LabelSpecifics[] getLabelSpecifics() {
-        return (labelSpecifics!=null) ? labelSpecifics : EMPTY_LABELS;
+    public @Nonnull ArrayList<LabelSpecifics> getLabelSpecifics() {
+        return (labelSpecifics !=null) ? labelSpecifics : EMPTY_LABELS;
     }
 
     /**

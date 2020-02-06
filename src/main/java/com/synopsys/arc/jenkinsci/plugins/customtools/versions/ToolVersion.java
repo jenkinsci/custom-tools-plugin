@@ -16,7 +16,6 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools.versions;
 
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import hudson.EnvVars;
 import hudson.model.Node;

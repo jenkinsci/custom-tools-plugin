@@ -16,8 +16,6 @@
 package com.synopsys.arc.jenkinsci.plugins.customtools.versions;
 
 import com.cloudbees.jenkins.plugins.customtools.CustomTool;
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition;
-import com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterValue;
 import com.synopsys.arc.jenkinsci.plugins.customtools.Messages;
 import hudson.Extension;
 import hudson.cli.CLICommand;
@@ -70,7 +68,8 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
         return tool != null ? tool.getToolVersion() : null;
     }
 
-    private @Nonnull ExtendedChoiceParameterDefinition getVersionsListSource() {
+    private @Nonnull
+    ExtendedChoiceParameterDefinition getVersionsListSource() {
        ToolVersionConfig versionConfig = getVersionConfig();
         if (versionConfig == null) {
             throw new IllegalStateException(
@@ -83,7 +82,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
     @Override
     public StringParameterValue createValue(StaplerRequest req, JSONObject jo)
             throws IllegalStateException {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)
+        StringParameterValue paramVal = (StringParameterValue)
                 getVersionsListSource().createValue(req, jo);
         if (paramVal == null) {
             return null;
@@ -93,7 +92,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
 
     @Override
     public StringParameterValue createValue(StaplerRequest req) {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)
+        StringParameterValue  paramVal = (StringParameterValue)
                 getVersionsListSource().createValue(req);
         if (paramVal == null) {
             return null;
@@ -109,7 +108,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
 
     @Override
     public ParameterValue getDefaultParameterValue() {
-        ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)
+        StringParameterValue paramVal = (StringParameterValue)
                 getVersionsListSource().getDefaultParameterValue();
         if (paramVal == null) {
             return null;

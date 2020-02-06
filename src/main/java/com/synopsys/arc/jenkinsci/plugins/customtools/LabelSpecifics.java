@@ -23,6 +23,7 @@ import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
 import java.io.Serializable;
+import java.util.ArrayList;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
@@ -51,7 +52,7 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
         return additionalVars;
     }
 
-     public boolean hasAdditionalVars() {
+    public boolean hasAdditionalVars() {
         return additionalVars != null;
     }
 
@@ -90,21 +91,23 @@ public class LabelSpecifics extends AbstractDescribableImpl<LabelSpecifics> impl
                 VariablesSubstitutionHelper.PATH.resolveVariable(exportedPaths, node));
     }
 
-    public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, @Nonnull EnvVars vars) {
-        LabelSpecifics[] out = new LabelSpecifics[specifics.length];
-        for (int i=0; i<specifics.length; i++) {
-            out[i] = specifics[i].substitute(vars);
+    public static @Nonnull
+    ArrayList<LabelSpecifics> substitute (ArrayList<LabelSpecifics> specifics, @Nonnull EnvVars vars) {
+        ArrayList<LabelSpecifics> out = new ArrayList<>();
+        for (int i=0; i<specifics.size(); i++) {
+            out.add(specifics.get(i).substitute(vars));
         }
         return out;
     }
 
-    public static @Nonnull LabelSpecifics[] substitute (LabelSpecifics[] specifics, Node node) {
-        LabelSpecifics[] out = new LabelSpecifics[specifics.length];
-        for (int i=0; i<specifics.length; i++) {
-            out[i] = specifics[i].substitute(node);
+    public static @Nonnull ArrayList<LabelSpecifics> substitute (ArrayList<LabelSpecifics> specifics, Node node) {
+        ArrayList<LabelSpecifics> out = new ArrayList<>();
+        for (int i=0; i<specifics.size(); i++) {
+            out.add(specifics.get(i).substitute(node));
         }
         return out;
     }
+
 
     @Extension
     public static class DescriptorImpl extends Descriptor<LabelSpecifics> {
