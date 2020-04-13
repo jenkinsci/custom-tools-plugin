@@ -92,7 +92,7 @@ public class CustomTool extends ToolInstallation implements
     private static final LabelSpecifics[] EMPTY_LABELS = new LabelSpecifics[0];
 
     @DataBoundConstructor
-    public CustomTool(@CheckForNull String name, @CheckForNull String home,
+    public CustomTool(@Nonnull String name, @CheckForNull String home,
             @CheckForNull List<? extends ToolProperty<?>> properties, @CheckForNull String exportedPaths,
             @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion,
             @CheckForNull String additionalVariables) {
