@@ -267,7 +267,17 @@ public class CustomTool extends ToolInstallation implements
         }
         final List<LabelSpecifics> specs = getAppliedSpecifics(node);
 
-        PathsList pathsFound = homePath.act(new MasterToSlaveFileCallable<PathsList>() {
+        return homePath.act(new GetPaths(specs, exportedPaths, getHome()));
+    }
+        private static class GetPaths extends MasterToSlaveFileCallable<PathsList> {
+            private final List<LabelSpecifics> specs;
+            private final @CheckForNull String exportedPaths;
+            private final @CheckForNull String toolHome;
+            GetPaths(List<LabelSpecifics> specs, String exportedPaths, String toolHome) {
+                this.specs = specs;
+                this.exportedPaths = exportedPaths;
+                this.toolHome = toolHome;
+            }
             private void parseLists(String pathList, List<String> target) {
                 String[] items = pathList.split("\\s*,\\s*");
                 for (String item : items) {
@@ -299,7 +309,7 @@ public class CustomTool extends ToolInstallation implements
                 for (String item : items) {
                     File file = new File(item);
                     if (!file.isAbsolute()) {
-                        file = new File (getHome(), item);
+                        file = new File(toolHome, item);
                     }
 
                     // Check if directory exists
@@ -310,16 +320,12 @@ public class CustomTool extends ToolInstallation implements
                 }
 
                 // Resolve home dir
-                final String toolHome = getHome();
                 if (toolHome == null) {
                     throw new IOException("Cannot retrieve Tool home directory. Should never happen ant this stage, please file a bug");
                 }
                 final File homeDir = new File(toolHome);
                 return new PathsList(outList, homeDir.getAbsolutePath());
             }
-        });
-
-        return pathsFound;
-    }
+        }
 
 }
