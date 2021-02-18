@@ -4,7 +4,7 @@
     <f:repeatable name="selectedTools" var="selectedTool" items="${instance.selectedTools}"
                   add="${%Add Tool}" header="Tools to install">
       <j:set var="toolDescriptor" value="${descriptor}"/><!-- to make this descriptor accessible from properties -->
-      <p.blockWrapper>
+      <p:blockWrapper>
         <f:entry title="${%Tool selection}">
           <select class="setting-input" name="selectedTools.name">
             <j:forEach var="installation" items="${descriptor.installations}">
@@ -17,9 +17,9 @@
             <f:repeatableDeleteButton value="${%Delete tool}"/>
           </div>
         </f:entry>
-      </p.blockWrapper>
+      </p:blockWrapper>
     </f:repeatable>
-    <p.blockWrapper>
+    <p:blockWrapper>
       <f:optionalBlock name="multiconfigOptions"
                        title="${%Multi-configuration jobs specific parameters}"
                        checked="${instance.hasMulticonfigOptions()}"
@@ -30,12 +30,12 @@
                       checked="${instance.multiconfigOptions.isSkipMasterInstallation()}"/>
         </f:entry>
       </f:optionalBlock>
-    </p.blockWrapper>
-    <p.blockWrapper>
+    </p:blockWrapper>
+    <p:blockWrapper>
       <f:entry field="convertHomesToUppercase">
         <f:checkbox title="${%Convert #ToolName_HOME variables to the upper-case}"
                     checked="${instance.isConvertHomesToUppercase()}"/>
       </f:entry>
-    </p.blockWrapper>
+    </p:blockWrapper>
   </f:entry>
 </j:jelly>
