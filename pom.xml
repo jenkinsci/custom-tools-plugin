@@ -10,7 +10,7 @@
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
   <artifactId>custom-tools-plugin</artifactId>
-  <version>0.8-SNAPSHOT</version>
+  <version>0.8</version>
   <packaging>hpi</packaging>
 
   <name>Jenkins Custom Tools Plugin</name>
@@ -40,7 +40,7 @@
     <connection>scm:git:git://github.com/jenkinsci/custom-tools-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/custom-tools-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/custom-tools-plugin</url>
-    <tag>HEAD</tag>
+    <tag>custom-tools-plugin-0.8</tag>
   </scm>
 
   <properties>
