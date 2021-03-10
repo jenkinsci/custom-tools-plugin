@@ -41,6 +41,7 @@ import hudson.tools.ToolProperty;
 import hudson.tools.ZipExtractionInstaller;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -255,20 +256,25 @@ public class CustomTool extends ToolInstallation implements
      * @param node where the tool has been installed
      * @return a list of directories to add to the $PATH
      *
-     * @throws IOException
+     * @throws IOException Operation error
      * @throws InterruptedException Operation has been interrupted
      */
     protected @Nonnull PathsList getPaths(@Nonnull Node node) throws IOException, InterruptedException {
+        final String toolHome = getHome();
+        if (toolHome == null) {
+            throw new FileNotFoundException("Cannot retrieve home directory of the custom tool " + getName());
+        }
 
-        FilePath homePath = new FilePath(node.getChannel(), getHome());
+        FilePath homePath = new FilePath(node.getChannel(), toolHome);
         //FIXME: Why?
         if (exportedPaths == null) {
             return PathsList.EMPTY;
         }
         final List<LabelSpecifics> specs = getAppliedSpecifics(node);
 
-        return homePath.act(new GetPaths(specs, exportedPaths, getHome()));
+        return homePath.act(new GetPaths(specs, exportedPaths, toolHome));
     }
+
         private static class GetPaths extends MasterToSlaveFileCallable<PathsList> {
             private final List<LabelSpecifics> specs;
             private final @CheckForNull String exportedPaths;
