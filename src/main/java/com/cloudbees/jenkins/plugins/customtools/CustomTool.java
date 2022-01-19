@@ -53,6 +53,7 @@ import javax.annotation.Nonnull;
 import jenkins.MasterToSlaveFileCallable;
 import jenkins.plugins.customtools.util.envvars.VariablesSubstitutionHelper;
 
+import org.jenkinsci.Symbol;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -211,6 +212,7 @@ public class CustomTool extends ToolInstallation implements
     }
 
     @Extension
+    @Symbol("custom")
     public static class DescriptorImpl extends ToolDescriptor<CustomTool> {
 
         public DescriptorImpl() {
