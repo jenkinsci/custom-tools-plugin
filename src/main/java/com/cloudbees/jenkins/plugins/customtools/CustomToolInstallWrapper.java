@@ -221,6 +221,7 @@ public class CustomToolInstallWrapper extends BuildWrapper {
 
         return new Launcher.DecoratedLauncher(launcher) {
             @Override
+            @SuppressFBWarnings("DCN_NULLPOINTER_EXCEPTION")
             public Proc launch(ProcStarter starter) throws IOException {
                 EnvVars vars;
                 try { // Dirty hack, which allows to avoid NPEs in Launcher::envs()
