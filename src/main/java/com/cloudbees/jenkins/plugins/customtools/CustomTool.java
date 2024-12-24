@@ -20,8 +20,6 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.CustomToolException;
 import com.synopsys.arc.jenkinsci.plugins.customtools.EnvStringParseHelper;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -82,10 +80,6 @@ public class CustomTool extends ToolInstallation implements
      */
     private transient @CheckForNull String correctedHome = null;
     /**
-     * Optional field, which referenced the {@link ToolVersion} configuration.
-     */
-    private final @CheckForNull ToolVersionConfig toolVersion;
-    /**
      * Additional variables string.
      * Stores variables expression in *.properties format.
      */
@@ -96,29 +90,16 @@ public class CustomTool extends ToolInstallation implements
     @DataBoundConstructor
     public CustomTool(@Nonnull String name, @CheckForNull String home,
             @CheckForNull List<? extends ToolProperty<?>> properties, @CheckForNull String exportedPaths,
-            @CheckForNull LabelSpecifics[] labelSpecifics, @CheckForNull ToolVersionConfig toolVersion,
+            @CheckForNull LabelSpecifics[] labelSpecifics,
             @CheckForNull String additionalVariables) {
         super(name, home, properties);
         this.exportedPaths = exportedPaths;
         this.labelSpecifics = labelSpecifics != null ? Arrays.copyOf(labelSpecifics, labelSpecifics.length) : null;
-        this.toolVersion = toolVersion;
         this.additionalVariables = additionalVariables;
     }
 
     public @CheckForNull String getExportedPaths() {
         return exportedPaths;
-    }
-
-    /**
-     * Gets the tool version configuration.
-     * @return Tool version configuration or null if it is not configured.
-     */
-    public @CheckForNull ToolVersionConfig getToolVersion() {
-        return toolVersion;
-    }
-
-    public boolean hasVersions() {
-        return toolVersion != null;
     }
 
     @Override
@@ -156,7 +137,7 @@ public class CustomTool extends ToolInstallation implements
         return new CustomTool(getName(), substitutedHomeDir,
                 getProperties().toList(), substitutedPath,
                 LabelSpecifics.substitute(getLabelSpecifics(), environment),
-                toolVersion, substitutedAdditionalVariables);
+                substitutedAdditionalVariables);
     }
 
     @Override
@@ -168,7 +149,7 @@ public class CustomTool extends ToolInstallation implements
 
         return new CustomTool(getName(), substitutedHomeDir, getProperties().toList(),
                 substitutedPath, LabelSpecifics.substitute(getLabelSpecifics(), node),
-                toolVersion, substitutedAdditionalVariables);
+                substitutedAdditionalVariables);
     }
 
     //FIXME: just a stub
@@ -181,7 +162,7 @@ public class CustomTool extends ToolInstallation implements
         }
         return new CustomTool(getName(), toolHome, getProperties().toList(),
                 getExportedPaths(), getLabelSpecifics(),
-                toolVersion, getAdditionalVariables());
+                getAdditionalVariables());
     }
 
     /**

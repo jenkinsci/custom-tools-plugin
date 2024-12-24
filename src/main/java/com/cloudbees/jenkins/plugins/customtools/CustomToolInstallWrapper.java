@@ -22,7 +22,6 @@ import com.synopsys.arc.jenkinsci.plugins.customtools.EnvVariablesInjector;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.PathsList;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersion;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -112,24 +111,16 @@ public class CustomToolInstallWrapper extends BuildWrapper {
     }
 
     @Override
-    public Environment setUp(AbstractBuild build, Launcher launcher,
-            BuildListener listener) throws IOException, InterruptedException {
-
-        final EnvVars buildEnv = build.getEnvironment(listener);
-        final Node node = build.getBuiltOn();
+    public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
 
         return new Environment() {
             @Override
             public void buildEnvVars(Map<String, String> env) {
 
-                // TODO: Inject Home dirs as well
                 for (SelectedTool selectedTool : selectedTools) {
                     CustomTool tool = selectedTool.toCustomTool();
-                    if (tool != null && tool.hasVersions()) {
-                        ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
-                        if (version != null && !env.containsKey(version.getVariableName())) {
-                            env.put(version.getVariableName(), version.getDefaultVersion());
-                        }
+                    if (tool != null) {
+                        // TODO: Inject Home dirs as well
                     }
                 }
             }
@@ -174,9 +165,6 @@ public class CustomToolInstallWrapper extends BuildWrapper {
         for (SelectedTool selectedToolName : selectedTools) {
             CustomTool tool = selectedToolName.toCustomToolValidated();
             CustomToolsLogger.logMessage(listener, tool.getName(), "Starting installation");
-
-            // Check versioning
-            checkVersions(tool, listener, buildEnv, node, versions);
 
             // This installs the tool if necessary
             CustomTool installed = tool
@@ -264,48 +252,6 @@ public class CustomToolInstallWrapper extends BuildWrapper {
                 return vars;
             }
         };
-    }
-
-    /**
-     * @deprecated The method is deprecated. It will be removed in future versions.
-     * @throws CustomToolException
-     */
-    @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Deprecated, will be removed later")
-    public void CheckVersions (CustomTool tool, BuildListener listener, EnvVars buildEnv, Node node, EnvVars target)
-            throws CustomToolException  {
-        checkVersions(tool, listener, buildEnv, node, target);
-    }
-
-    /**
-     * Checks versions and modify build environment if required.
-     * @param tool Custom Tool
-     * @param listener Build Listener
-     * @param buildEnv Build Environment (can be modified)
-     * @param node Target Node
-     * @param target Build Internal Environment (can be modified)
-     * @throws CustomToolException
-     * @since 0.4
-     */
-    public void checkVersions (@Nonnull CustomTool tool, @Nonnull BuildListener listener,
-            @Nonnull EnvVars buildEnv, @Nonnull Node node, @Nonnull EnvVars target) throws CustomToolException {
-        // Check version
-        if (tool.hasVersions()) {
-            ToolVersion version = ToolVersion.getEffectiveToolVersion(tool, buildEnv, node);
-            if (version == null) {
-                CustomToolsLogger.logMessage(listener, tool.getName(), "Error: No version has been specified, no default version. Failing the build...");
-                throw new CustomToolException("Version has not been specified for the "+tool.getName());
-            }
-
-            CustomToolsLogger.logMessage(listener, tool.getName(), "Version "+version.getActualVersion()+" has been specified by "+version.getVersionSource());
-
-            // Override default versions
-            final String versionSource = version.getVersionSource();
-            if (versionSource != null && versionSource.equals(ToolVersion.DEFAULTS_SOURCE)) {
-                String envStr = version.getVariableName()+"="+version.getDefaultVersion();
-                target.addLine(envStr);
-                buildEnv.addLine(envStr);
-            }
-        }
     }
 
     @Override

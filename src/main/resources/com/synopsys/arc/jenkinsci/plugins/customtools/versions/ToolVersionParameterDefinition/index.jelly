@@ -1,6 +1,0 @@
-<?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
-  <st:include class="com.cwctravel.hudson.plugins.extended_choice_parameter.ExtendedChoiceParameterDefinition"
-              page="index.jelly"
-              it="${it.versionConfig.versionsListSource}"/>
-</j:jelly>
