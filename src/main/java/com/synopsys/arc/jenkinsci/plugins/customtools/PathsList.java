@@ -31,9 +31,9 @@ import javax.annotation.Nonnull;
 public class PathsList implements Serializable {
     public @Nonnull List<String> paths;
     /*Restored home dir*/
-    public @CheckForNull String homeDir;
-    public @CheckForNull String pathSeparator;
-    public @CheckForNull String separator;
+    private @CheckForNull String homeDir;
+    private @CheckForNull String pathSeparator;
+    private @CheckForNull String separator;
 
     public static final PathsList EMPTY = new PathsList(new LinkedList<>(), null);
 
