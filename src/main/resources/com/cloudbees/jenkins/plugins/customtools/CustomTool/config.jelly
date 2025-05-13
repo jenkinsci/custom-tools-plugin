@@ -45,11 +45,5 @@ THE SOFTWARE.
                             var="labelSpecific">
       </f:repeatableProperty>
     </f:entry>
-    <f:optionalProperty title="${%Enable Versions}"
-                        name="versioning"
-                        field="toolVersion"
-                        checked="${instance.hasVersions()}"
-                        help="/plugin/custom-tools-plugin/CustomTool/help-versioning.html">
-    </f:optionalProperty>
   </f:advanced>
 </j:jelly>

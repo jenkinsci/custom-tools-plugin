@@ -39,7 +39,6 @@ import java.util.concurrent.Future;
 import com.cloudbees.jenkins.plugins.customtools.CustomTool.DescriptorImpl;
 import com.synopsys.arc.jenkinsci.plugins.customtools.LabelSpecifics;
 import com.synopsys.arc.jenkinsci.plugins.customtools.multiconfig.MulticonfigWrapperOptions;
-import com.synopsys.arc.jenkinsci.plugins.customtools.versions.ToolVersionConfig;
 import jenkins.model.Jenkins;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -117,7 +116,7 @@ public class CustomToolInstallerTest {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<>();
         properties.add(new InstallSourceProperty(installers));
 
-        return new CustomTool("MyTrue", null, properties, "./", null, ToolVersionConfig.DEFAULT, null);
+        return new CustomTool("MyTrue", null, properties, "./", null, null);
     }
 
     //TODO: refactor and generalize
@@ -128,7 +127,7 @@ public class CustomToolInstallerTest {
         List<ToolProperty<ToolInstallation>> properties = new ArrayList<>();
         properties.add(new InstallSourceProperty(installers));
 
-        return new CustomTool(name, null, properties, "./", specifics, ToolVersionConfig.DEFAULT, additionalVars);
+        return new CustomTool(name, null, properties, "./", specifics, additionalVars);
     }
 
 }
