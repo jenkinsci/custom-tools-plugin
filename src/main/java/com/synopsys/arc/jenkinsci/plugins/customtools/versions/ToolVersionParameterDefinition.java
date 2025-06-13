@@ -30,7 +30,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 /**
  * Implements "Tool version" parameter.
@@ -81,7 +81,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
     }
 
     @Override
-    public StringParameterValue createValue(StaplerRequest req, JSONObject jo)
+    public StringParameterValue createValue(StaplerRequest2 req, JSONObject jo)
             throws IllegalStateException {
         ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)
                 getVersionsListSource().createValue(req, jo);
@@ -92,7 +92,7 @@ public class ToolVersionParameterDefinition extends ParameterDefinition {
     }
 
     @Override
-    public StringParameterValue createValue(StaplerRequest req) {
+    public StringParameterValue createValue(StaplerRequest2 req) {
         ExtendedChoiceParameterValue paramVal = (ExtendedChoiceParameterValue)
                 getVersionsListSource().createValue(req);
         if (paramVal == null) {
